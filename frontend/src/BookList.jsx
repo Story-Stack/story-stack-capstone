@@ -1,5 +1,5 @@
 import './BookList.css';
-import Book from './Book';
+import Book from './BookCard';
 
 function BookList() {
   return (
