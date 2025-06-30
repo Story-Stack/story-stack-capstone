@@ -14,15 +14,3 @@
 -  Login with Google via Firebase Authentication
 -  Mobile-responsive UI
 
-## ⚙️ Tech Stack
-
-- **Frontend:** React, CSS, React Router
-- **Backend:** Node.js + Express
-- **Auth & DB:** Firebase Authentication + Firestore
-- **API:** Google Books API
-- **Deployment:**  Render
-
-## Author
-
-Mark Sivan Tamakloe  
-
