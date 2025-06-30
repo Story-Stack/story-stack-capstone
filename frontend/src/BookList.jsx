@@ -1,14 +1,15 @@
 import './BookList.css';
 import Book from './BookCard';
 
-function BookList() {
+function BookList({books}) {
+  if (books.length === 0) return <p>No books to show</p>
   return (
     <div className='book-list'>
-      <Book />
-      <Book />
-      <Book />
-      <Book />
-
+      {books.map(book =>
+      <BookCard
+      key={book.id}
+      book={book}
+      />)}
     </div>
   )
 }
