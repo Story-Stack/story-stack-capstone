@@ -1,23 +1,29 @@
 import './Book.css'
+import BookModal from './BookModal.jsx'
+import { useState } from 'react';
 
 
-function Book(props) {
+function BookCard(book) {
+
+    const { title, authors, imageLinks } = book.volumeInfo;
+    const [showModal, setShowModal] = useState(false);
     return (
-        <div className='book'>
-            <div className='cover-image'>
+    <div>
 
-            </div>
+        <div className='book-card' onClick={() => setShowModal(true)}>
 
-            <div className='title'>
-            </div>
-
-            <div className='author'>
-
-            </div>
-
+         {imageLinks?.thumbnail} &&(
+            <img src={imageLinks.thumbnail}
+            alt={title}
+            />
+         )
+            <h4>{title}</h4>
+            <p>{authors.join('. ') || 'Unknown author'}</p>
         </div>
 
+        {showModal && <BookModal book={book} onClose={() => setShowModal(false)} />}
+    </div>
     )
 }
 
-export default Book;
+export default BookCard;
