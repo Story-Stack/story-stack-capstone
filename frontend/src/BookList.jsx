@@ -1,5 +1,5 @@
 import './BookList.css';
-import Book from './BookCard';
+import BookCard from './BookCard';
 
 function BookList({books}) {
   if (books.length === 0) return <p>No books to show</p>

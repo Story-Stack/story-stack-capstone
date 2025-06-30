@@ -1,0 +1,35 @@
+.page-layout {
+    display: flex;
+    justify-content: center; /* centers the whole flex container horizontally */
+    gap: 20px; /* space between columns */
+    padding: 20px;
+    height: 100vh; /* full viewport height */
+    box-sizing: border-box;
+  }
+
+  .left-sidebar,
+  .right-sidebar {
+    flex: 1 1 200px; /* fixed minimum width */
+    max-width: 200px;
+    background-color: #f5f5f5; /* just for visualization */
+    padding: 10px;
+    overflow-y: auto;
+
+  }
+
+  .left-sidebar{
+    margin-right: 10px;
+  }
+
+  .right-sidebar{
+    margin-left: 10px;
+  }
+
+  .main-content {
+    flex: 2 1 600px; /* bigger flex-grow to get most space */
+    max-width: 1000px;
+    background-color: #fff; /* optional */
+    padding: 20px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    overflow-y: auto;
+  }
