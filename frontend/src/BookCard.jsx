@@ -6,10 +6,20 @@ import placeholder from "./assets/placeholder.jpg";
 function BookCard({ book }) {
   const { title, authors, imageLinks } = book.volumeInfo;
   const [showModal, setShowModal] = useState(false);
+
+  const image =
+  book.volumeInfo.imageLinks?.extraLarge ||
+  book.volumeInfo.imageLinks?.large ||
+  book.volumeInfo.imageLinks?.medium ||
+  book.volumeInfo.imageLinks?.thumbnail ||
+  book.volumeInfo.imageLinks?.smallThumbnail ||
+  placeholder;
+
   return (
     <div>
       <div className="book-card" onClick={() => setShowModal(true)}>
-        <img src={imageLinks?.thumbnail || placeholder} alt={title} />
+
+        <img src={image} alt={title} />
 
         <p className="title">{title}</p>
 

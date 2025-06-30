@@ -3,7 +3,7 @@
     border: 1px solid #ddd;           /* Light gray border */
     border-radius: 8px;               /* Rounded corners */
     box-shadow: 0 2px 5px rgba(0,0,0,0.1); /* Subtle shadow */
-    width: 280px;                    /* Fixed width */
+    width: 250px;                    /* Fixed width */
     height: 500px;
     display: flex;
     flex-direction: column;
@@ -21,10 +21,13 @@
 
   .book-card img {
     width: 100%;                   /* Fixed image width */
-    height: 60%;                   /* Keep aspect ratio */
+    height: 300px;                   /* Keep aspect ratio */
     margin-bottom: 12px;
     border-radius: 4px;
     object-fit: cover;
+    image-rendering: auto;         /* Default: browser decides */
+    image-rendering: crisp-edges;  /* Tries to avoid blur (best for pixel art or sharp lines) */
+    image-rendering: high-quality;
   }
 
   .book-card .title {
