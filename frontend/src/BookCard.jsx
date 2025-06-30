@@ -1,6 +1,7 @@
 import "./BookCard.css";
 import BookModal from "./BookModal.jsx";
 import { useState } from "react";
+import placeholder from "./assets/placeholder.jpg";
 
 function BookCard({ book }) {
   const { title, authors, imageLinks } = book.volumeInfo;
@@ -8,11 +9,11 @@ function BookCard({ book }) {
   return (
     <div>
       <div className="book-card" onClick={() => setShowModal(true)}>
-        {imageLinks?.thumbnail && (
-          <img src={imageLinks.thumbnail} alt={title} />
-        )}
+        <img src={imageLinks?.thumbnail || placeholder} alt={title} />
+
         <p className="title">{title}</p>
-        <p className="author">{authors.join(". ") || "Unknown author"}</p>
+
+        <p className="author">{(authors || ["Unknown author"]).join(", ")}</p>
       </div>
 
       {showModal && (

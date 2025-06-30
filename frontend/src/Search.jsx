@@ -18,7 +18,8 @@ function Search({ onResults }) {
       // Fetch books from the Google Books API
       const response = await fetch(
         `https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(
-          query)}&key=${apiKey}&maxResults=40`
+          query
+        )}&key=${apiKey}&maxResults=40`
       );
       const data = await response.json();
 

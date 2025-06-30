@@ -1,5 +1,5 @@
 import "./Dashboard.css";
-import Search from "../search";
+import Search from "../Search";
 import BookList from "../BookList";
 import { useState } from "react";
 
@@ -19,19 +19,14 @@ function Dashboard() {
 
       <Search onResults={handleResults} />
       <div className="page-layout">
-           <aside className="left-sidebar">
-        {/* Profile and Favorites */}
-          </aside>
+        <aside className="left-sidebar">{/* Profile and Favorites */}</aside>
 
-          <main className="main-content">
-            <BookList books={books} />
-         </main>
+        <main className="main-content">
+          <BookList books={books} />
+        </main>
 
-         <aside className="right-sidebar">
-             {/* Channels */}
-            </aside>
+        <aside className="right-sidebar">{/* Channels */}</aside>
       </div>
-
     </div>
   );
 }
