@@ -3,6 +3,7 @@ import {
   Routes,
   Route,
   Navigate,
+  useLocation,
 } from "react-router-dom";
 import { useState, useEffect, createContext, useContext } from "react";
 import "./App.css";
@@ -39,13 +40,55 @@ export const useFavorites = () => {
 // Navigation Component
 const Navigation = () => {
   const { user, logout } = useAuth();
+  const location = useLocation();
+  const currentPath = location.pathname;
 
-  return (
-    <nav className="app-navigation">
-      <div className="nav-brand">
-        <h1>Story Stack</h1>
-      </div>
-      <div className="nav-links">
+  const renderNavigationLinks = () => {
+    // Homepage should have only Sign In and Register links
+    if (currentPath === "/") {
+      return (
+        <>
+          <a href="/signin">Sign In</a> &nbsp;
+          <a href="/register">Register</a> &nbsp;
+        </>
+      );
+    }
+
+    // Dashboard should have none of these navigation links
+    if (currentPath === "/dashboard") {
+      return user ? (
+        <>
+          <a href="/favorites">My Favorites</a>
+          <button onClick={logout} className="logout-btn">
+            Logout
+          </button>
+          <span className="user-greeting">Welcome, {user.name}!</span>
+        </>
+      ) : null;
+    }
+
+    // Sign In page should have only Home and Register links
+    if (currentPath === "/signin") {
+      return (
+        <>
+          <a href="/">Home</a> &nbsp;
+          <a href="/register">Register</a> &nbsp;
+        </>
+      );
+    }
+
+    // Register page should have Sign In and Home links
+    if (currentPath === "/register") {
+      return (
+        <>
+          <a href="/">Home</a> &nbsp;
+        </>
+      );
+    }
+
+    // Default navigation for other pages
+    return (
+      <>
         <a href="/">Home</a> &nbsp;
         {user ? (
           <>
@@ -63,7 +106,16 @@ const Navigation = () => {
             <a href="/dashboard">Dashboard</a> &nbsp;
           </>
         )}
+      </>
+    );
+  };
+
+  return (
+    <nav className="app-navigation">
+      <div className="nav-brand">
+        <h1>Story Stack</h1>
       </div>
+      <div className="nav-links">{renderNavigationLinks()}</div>
     </nav>
   );
 };
