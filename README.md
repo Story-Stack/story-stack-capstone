@@ -11,6 +11,6 @@
 -  View book details (description, ratings, preview, etc.)
 -  Save favorite books to a personal shelf
 -  Join channels related to specific books for discussion
--  Login with Google via Firebase Authentication
+-  Login with Google via Supabase Authentication
 -  Mobile-responsive UI
 
