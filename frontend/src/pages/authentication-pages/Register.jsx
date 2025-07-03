@@ -1,6 +1,10 @@
 import { useState } from "react";
 import { supabase } from "../../../utils/supabaseClient"
 import { useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
+
+
+
 
 
 function Register() {
@@ -15,7 +19,7 @@ function Register() {
     else alert("Check your email for the confirmation link.");
   };
 
-    const handGoogleSignIn = async () => {
+    const handleGoogleSignIn = async () => {
         const {error} = await supabase.auth.signInWithOAuth({
             provider: 'google',
               options: {
@@ -27,6 +31,10 @@ function Register() {
     };
     return(
          <div className="register-container">
+
+            <h1>
+            Create an account today!
+            </h1>
             <form onSubmit={handleSignUp}>
                 <input type="text"
                     placeholder="Email"
@@ -50,10 +58,12 @@ function Register() {
 
               <button
                     type="button"
-                   onClick={handGoogleSignIn}
+                   onClick={handleGoogleSignIn}
                    className="google-sigin-button">
                     Continue with Google
                 </button>
+               <p>Already have an account? <Link to="/signin">Sign in</Link></p>
+
 
 
           </div>
