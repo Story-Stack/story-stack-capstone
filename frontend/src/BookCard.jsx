@@ -51,6 +51,7 @@ function BookCard({
             aria-label={
               isFavorite ? "Remove from favorites" : "Add to favorites"
             }
+            title={isFavorite ? "Remove from favorites" : "Add to favorites"}
           >
             {isFavorite ? "❤️" : "♡"}
           </button>
@@ -58,7 +59,8 @@ function BookCard({
           <button
             className={`watched-btn ${toShelf ? "active" : ""}`}
             onClick={toggleToShelf}
-            aria-label={toShelf ? "Add to Shelf" : "Remove from Shelf"}
+            aria-label={toShelf ? "Remove from shelf" : "Add to shelf"}
+            title={toShelf ? "Remove from shelf" : "Add to shelf"}
           >
             {toShelf ? "✔️" : "➕"}
           </button>
