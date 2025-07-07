@@ -44,3 +44,109 @@
   color: #666;
   text-align: center;
 }
+
+
+/* Card Actions Styles */
+.card-actions {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 10px;
+  gap: 10px;
+}
+
+.favorite-btn,
+.watched-btn {
+  background: none;
+  border: none;
+  font-size: 1.2em;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 50%;
+  transition: background-color 0.2s, transform 0.1s;
+  position: relative;
+  min-width: 40px;
+  min-height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.favorite-btn:hover,
+.watched-btn:hover {
+  background-color: #f0f0f0;
+  transform: scale(1.1);
+}
+
+.favorite-btn.active {
+  color: #e74c3c;
+}
+
+.watched-btn.active {
+  color: #27ae60;
+}
+
+/* Custom tooltip styles */
+.favorite-btn::after,
+.watched-btn::after {
+  content: attr(title);
+  position: absolute;
+  bottom: 120%;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #333;
+  color: white;
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-size: 0.75em;
+  white-space: nowrap;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s, visibility 0.3s, transform 0.3s;
+  pointer-events: none;
+  z-index: 1000;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+.favorite-btn:hover::after,
+.watched-btn:hover::after {
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(-50%) translateY(-2px);
+}
+
+/* Tooltip arrow */
+.favorite-btn::before,
+.watched-btn::before {
+  content: "";
+  position: absolute;
+  bottom: 110%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 5px solid transparent;
+  border-top-color: #333;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s, visibility 0.3s;
+  pointer-events: none;
+  z-index: 1000;
+}
+
+.favorite-btn:hover::before,
+.watched-btn:hover::before {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .card-actions {
+    gap: 5px;
+  }
+
+  .favorite-btn,
+  .watched-btn {
+    min-width: 35px;
+    min-height: 35px;
+    font-size: 1em;
+  }
+}

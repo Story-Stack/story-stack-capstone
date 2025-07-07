@@ -8,10 +8,13 @@ function BookList({ books, onFavoritesUpdate }) {
   const [shelfItems, setShelfItems] = useState(new Set());
   const { user } = useAuth();
 
+  // Load user's favorites and shelf items from database
   useEffect(() => {
     if (user) {
       loadUserData();
     } else {
+
+      // Clear data when user logs out
       setFavorites(new Set());
       setShelfItems(new Set());
     }
@@ -109,6 +112,7 @@ function BookList({ books, onFavoritesUpdate }) {
           if (onFavoritesUpdate) {
             onFavoritesUpdate();
           }
+
         } else {
           const errorData = await response.json();
           console.error("Failed to remove from favorites:", errorData);
@@ -141,6 +145,7 @@ function BookList({ books, onFavoritesUpdate }) {
           if (onFavoritesUpdate) {
             onFavoritesUpdate();
           }
+
         } else {
           const errorData = await response.json();
           console.error("Failed to add to favorites:", errorData);
