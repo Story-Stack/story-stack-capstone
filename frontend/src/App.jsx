@@ -6,6 +6,7 @@ import {
   useLocation,
 } from "react-router-dom";
 import { useState, useEffect, createContext, useContext } from "react";
+import { supabase } from "../utils/supabaseClient";
 import "./App.css";
 
 // Import pages
@@ -37,6 +38,21 @@ export const useFavorites = () => {
   return context;
 };
 
+// Protected Route Component
+const ProtectedRoute = ({ children }) => {
+  const { user, loading } = useAuth();
+
+  if (loading) {
+    return <div>Loading...</div>;
+  }
+
+  if (!user) {
+    return <Navigate to="/signin" replace />;
+  }
+
+  return children;
+};
+
 // Navigation Component
 const Navigation = () => {
   const { user, logout } = useAuth();
@@ -58,11 +74,7 @@ const Navigation = () => {
     if (currentPath === "/dashboard") {
       return user ? (
         <>
-          <a href="/favorites">My Favorites</a>
-          <button onClick={logout} className="logout-btn">
-            Logout
-          </button>
-          <span className="user-greeting">Welcome, {user.name}!</span>
+          <span className="user-greeting">Welcome, {user.email}!</span>
         </>
       ) : null;
     }
@@ -94,10 +106,10 @@ const Navigation = () => {
           <>
             <a href="/dashboard">Dashboard</a>
             <a href="/favorites">My Favorites</a>
-            <button onClick={logout} className="logout-btn">
+            {/* <button onClick={logout} className="logout-btn">
               Logout
-            </button>
-            <span className="user-greeting">Welcome, {user.name}!</span>
+            </button> */}
+            <span className="user-greeting">Welcome, {user.email}!</span>
           </>
         ) : (
           <>
@@ -126,90 +138,70 @@ const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Check for existing session on app load
-    const checkAuth = async () => {
-      try {
-        const token = localStorage.getItem("authToken");
-        if (token) {
-          // Validate token with backend and get user data
-          // This is a placeholder - implement actual API call
-          const userData = JSON.parse(localStorage.getItem("userData"));
-          setUser(userData);
-        }
-      } catch (error) {
-        console.error("Auth check failed:", error);
-        localStorage.removeItem("authToken");
-        localStorage.removeItem("userData");
-      } finally {
-        setLoading(false);
+    // Get initial session
+    const getSession = async () => {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      if (session) {
+        setUser(session.user);
       }
+      setLoading(false);
     };
 
-    checkAuth();
+    getSession();
+
+    // Listen for auth changes
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      if (session) {
+        setUser(session.user);
+        // Create user profile in database if it doesn't exist
+        await createUserProfile(session.user);
+      } else {
+        setUser(null);
+      }
+      setLoading(false);
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
 
-  const login = async (email, password) => {
+  const createUserProfile = async (authUser) => {
     try {
-      // Implement actual login API call
-      const response = await fetch("/api/auth/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ email, password }),
-      });
+      // Check if user profile already exists in your database
+      const response = await fetch(
+        `http://localhost:3000/api/users/${authUser.id}`
+      );
 
-      if (response.ok) {
-        const data = await response.json();
-        localStorage.setItem("authToken", data.token);
-        localStorage.setItem("userData", JSON.stringify(data.user));
-        setUser(data.user);
-        return { success: true };
-      } else {
-        return { success: false, error: "Invalid credentials" };
+      if (!response.ok) {
+        // User doesn't exist, create profile
+        await fetch("http://localhost:3000/api/users", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            supabase_id: authUser.id,
+            email: authUser.email,
+            first_name: authUser.user_metadata?.first_name || "",
+            last_name: authUser.user_metadata?.last_name || "",
+          }),
+        });
       }
     } catch (error) {
-      return { success: false, error: "Login failed" };
+      console.error("Error creating user profile:", error);
     }
   };
 
-  const register = async (userData) => {
-    try {
-      // Implement actual registration API call
-      const response = await fetch("/api/auth/register", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(userData),
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        localStorage.setItem("authToken", data.token);
-        localStorage.setItem("userData", JSON.stringify(data.user));
-        setUser(data.user);
-        return { success: true };
-      } else {
-        const errorData = await response.json();
-        return { success: false, error: errorData.message };
-      }
-    } catch (error) {
-      return { success: false, error: "Registration failed" };
-    }
-  };
-
-  const logout = () => {
-    localStorage.removeItem("authToken");
-    localStorage.removeItem("userData");
-    setUser(null);
+  const logout = async () => {
+    await supabase.auth.signOut();
   };
 
   const value = {
     user,
     loading,
-    login,
-    register,
     logout,
   };
 
@@ -323,12 +315,30 @@ function App() {
                 <Route path="/signin" element={<SignIn />} />
                 <Route path="/register" element={<Register />} />
 
-                {/* Temporarily unprotected routes for development */}
-                <Route path="/dashboard" element={<Dashboard />} />
-                <Route path="/favorites" element={<FavoritesPage />} />
+                {/* Protected Routes */}
+                <Route
+                  path="/dashboard"
+                  element={
+                    <ProtectedRoute>
+                      <Dashboard />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/favorites"
+                  element={
+                    <ProtectedRoute>
+                      <FavoritesPage />
+                    </ProtectedRoute>
+                  }
+                />
                 <Route
                   path="/discussion/:bookId"
-                  element={<DiscussionPage />}
+                  element={
+                    <ProtectedRoute>
+                      <DiscussionPage />
+                    </ProtectedRoute>
+                  }
                 />
 
                 {/* Catch all route - redirect to home */}
