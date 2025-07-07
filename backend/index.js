@@ -6,6 +6,8 @@ const { PrismaClient } = require("./generated/prisma");
 
 // Import routes
 const usersRoutes = require("./routes/users.js");
+const favoritesRoutes = require("./routes/favorites.js");
+const shelfRoutes = require("./routes/shelf.js");
 
 dotenv.config();
 
@@ -18,6 +20,8 @@ app.use(morgan("dev")); // optional: logs requests for dev debugging
 
 // Routes
 app.use("/api/users", usersRoutes);
+app.use("/api/favorites", favoritesRoutes);
+app.use("/api/shelf", shelfRoutes);
 
 app.get("/", (req, res) => {
   res.send("Welcome to StoryStack API");
