@@ -145,9 +145,9 @@ function FavoritesPage() {
               <BookCard
                 key={favorite.book_id}
                 book={book}
-                isFavorite={true} 
-                toShelf={false} 
-                toShelf={false} 
+                isFavorite={true}
+                toShelf={false}
+                
                 onToggleFavorite={() => handleRemoveFromFavorites(book)}
                 onToggleToShelf={() => handleToggleToShelf(book)}
               />
