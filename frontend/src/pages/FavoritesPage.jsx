@@ -148,7 +148,7 @@ function FavoritesPage() {
                 key={favorite.book_id}
                 book={book}
                 isFavorite={true} // Always true since this is the favorites page
-                toShelf={false} // You can implement shelf checking logic here later
+                toShelf={false} 
                 onToggleFavorite={() => handleRemoveFromFavorites(book)}
                 onToggleToShelf={() => handleToggleToShelf(book)}
               />

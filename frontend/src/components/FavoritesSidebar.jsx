@@ -56,15 +56,12 @@ function Sidebar() {
         </button>
 
         {/* Add more navigation tabs here in the future */}
-        <button className="sidebar-tab" disabled>
+        <button className="sidebar-tab">
           <span className="tab-icon">📚</span>
           <span className="tab-text">My Shelf</span>
         </button>
 
-        <button className="sidebar-tab" disabled>
-          <span className="tab-icon">📖</span>
-          <span className="tab-text">Reading List</span>
-        </button>
+
       </nav>
     </div>
   );
