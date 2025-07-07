@@ -66,6 +66,7 @@ const Navigation = () => {
         <>
           <a href="/signin">Sign In</a> &nbsp;
           <a href="/register">Register</a> &nbsp;
+          <a href="/dashboard">Dashboard</a> &nbsp;
         </>
       );
     }
@@ -319,7 +320,7 @@ function App() {
                 <Route path="/dashboard" element={<Dashboard />} />
 
                 {/* Protected Routes */}
-                
+
                 {/* <Route
                   path="/favorites"
                   element={
