@@ -55,7 +55,7 @@ const ProtectedRoute = ({ children }) => {
 
 // Navigation Component
 const Navigation = () => {
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
   const location = useLocation();
   const currentPath = location.pathname;
 
@@ -75,7 +75,9 @@ const Navigation = () => {
     if (currentPath === "/dashboard") {
       return user ? (
         <>
-          <span className="user-greeting">Welcome, {user.email}!</span>
+          <span className="user-greeting">
+            Welcome, {user.email.split("@")[0]}!
+          </span>
         </>
       ) : null;
     }
@@ -225,10 +227,14 @@ const FavoritesProvider = ({ children }) => {
 
   const loadFavorites = async () => {
     try {
-      const token = localStorage.getItem("authToken");
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      if (!session) return;
+
       const response = await fetch("/api/favorites", {
         headers: {
-          Authorization: `Bearer ${token}`,
+          Authorization: `Bearer ${session.access_token}`,
         },
       });
 
@@ -243,12 +249,16 @@ const FavoritesProvider = ({ children }) => {
 
   const addToFavorites = async (book) => {
     try {
-      const token = localStorage.getItem("authToken");
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      if (!session) return { success: false };
+
       const response = await fetch("/api/favorites", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
+          Authorization: `Bearer ${session.access_token}`,
         },
         body: JSON.stringify({ bookId: book.id }),
       });
@@ -265,11 +275,15 @@ const FavoritesProvider = ({ children }) => {
 
   const removeFromFavorites = async (bookId) => {
     try {
-      const token = localStorage.getItem("authToken");
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      if (!session) return { success: false };
+
       const response = await fetch(`/api/favorites/${bookId}`, {
         method: "DELETE",
         headers: {
-          Authorization: `Bearer ${token}`,
+          Authorization: `Bearer ${session.access_token}`,
         },
       });
 
