@@ -3,7 +3,7 @@ import BookCard from "./BookCard";
 import { useState, useEffect } from "react";
 import { useAuth } from "./App";
 
-function BookList({ books }) {
+function BookList({ books, onFavoritesUpdate }) {
   const [favorites, setFavorites] = useState(new Set());
   const [shelfItems, setShelfItems] = useState(new Set());
   const { user } = useAuth();
@@ -13,6 +13,7 @@ function BookList({ books }) {
     if (user) {
       loadUserData();
     } else {
+
       // Clear data when user logs out
       setFavorites(new Set());
       setShelfItems(new Set());
@@ -106,6 +107,12 @@ function BookList({ books }) {
             return newFavorites;
           });
           console.log("Removed from favorites:", book.volumeInfo.title);
+
+          // Notify parent component to refresh favorites sidebar
+          if (onFavoritesUpdate) {
+            onFavoritesUpdate();
+          }
+
         } else {
           const errorData = await response.json();
           console.error("Failed to remove from favorites:", errorData);
@@ -133,6 +140,12 @@ function BookList({ books }) {
             return newFavorites;
           });
           console.log("Added to favorites:", book.volumeInfo.title);
+
+          // Notify parent component to refresh favorites sidebar
+          if (onFavoritesUpdate) {
+            onFavoritesUpdate();
+          }
+
         } else {
           const errorData = await response.json();
           console.error("Failed to add to favorites:", errorData);
