@@ -315,23 +315,19 @@ function App() {
                 <Route path="/signin" element={<SignIn />} />
                 <Route path="/register" element={<Register />} />
 
+                {/* Temporarily unprotected dashboard for development */}
+                <Route path="/dashboard" element={<Dashboard />} />
+
                 {/* Protected Routes */}
-                <Route
-                  path="/dashboard"
-                  element={
-                    <ProtectedRoute>
-                      <Dashboard />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
+                
+                {/* <Route
                   path="/favorites"
                   element={
                     <ProtectedRoute>
                       <FavoritesPage />
                     </ProtectedRoute>
                   }
-                />
+                /> */}
                 <Route
                   path="/discussion/:bookId"
                   element={
