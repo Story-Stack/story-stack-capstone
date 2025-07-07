@@ -57,7 +57,6 @@ function FavoritesPage() {
       });
 
       if (response.ok) {
-        // Remove from local state
         setFavorites((prev) => prev.filter((fav) => fav.book_id !== book.id));
         console.log("Removed from favorites:", book.volumeInfo?.title);
       } else {
@@ -71,7 +70,6 @@ function FavoritesPage() {
   };
 
   const handleToggleToShelf = async (book) => {
-    // This function can be implemented later for shelf functionality
     console.log("Toggle shelf for:", book.volumeInfo?.title);
   };
 
@@ -147,7 +145,8 @@ function FavoritesPage() {
               <BookCard
                 key={favorite.book_id}
                 book={book}
-                isFavorite={true} // Always true since this is the favorites page
+                isFavorite={true} 
+                toShelf={false} 
                 toShelf={false} 
                 onToggleFavorite={() => handleRemoveFromFavorites(book)}
                 onToggleToShelf={() => handleToggleToShelf(book)}
