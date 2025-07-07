@@ -1,66 +1,170 @@
 import "./BookList.css";
 import BookCard from "./BookCard";
 import { useState, useEffect } from "react";
+import { useAuth } from "./App";
 
 function BookList({ books }) {
   const [favorites, setFavorites] = useState(new Set());
   const [shelfItems, setShelfItems] = useState(new Set());
+  const { user } = useAuth();
 
-  // Load saved data from localStorage on component mount
+  // Load user's favorites and shelf items from database
   useEffect(() => {
-    const savedFavorites = localStorage.getItem("storystack-favorites");
-    const savedShelfItems = localStorage.getItem("storystack-shelf");
-
-    if (savedFavorites) {
-      setFavorites(new Set(JSON.parse(savedFavorites)));
+    if (user) {
+      loadUserData();
+    } else {
+      // Clear data when user logs out
+      setFavorites(new Set());
+      setShelfItems(new Set());
     }
+  }, [user]);
 
-    if (savedShelfItems) {
-      setShelfItems(new Set(JSON.parse(savedShelfItems)));
-    }
-  }, []);
+  const loadUserData = async () => {
+    if (!user) return;
 
-  // Save to localStorage whenever favorites change
-  useEffect(() => {
-    localStorage.setItem(
-      "storystack-favorites",
-      JSON.stringify([...favorites])
-    );
-  }, [favorites]);
-
-  // Save to localStorage whenever shelf items change
-  useEffect(() => {
-    localStorage.setItem("storystack-shelf", JSON.stringify([...shelfItems]));
-  }, [shelfItems]);
-
-  const handleToggleFavorite = (book) => {
-    const bookId = book.id;
-    setFavorites((prev) => {
-      const newFavorites = new Set(prev);
-      if (newFavorites.has(bookId)) {
-        newFavorites.delete(bookId);
-        console.log("Removed from favorites:", book.volumeInfo.title);
-      } else {
-        newFavorites.add(bookId);
-        console.log("Added to favorites:", book.volumeInfo.title);
+    try {
+      // Load favorites
+      const favoritesResponse = await fetch(
+        `http://localhost:3000/api/favorites/${user.id}`
+      );
+      if (favoritesResponse.ok) {
+        const favoritesData = await favoritesResponse.json();
+        const favoriteIds = new Set(favoritesData.map((fav) => fav.book_id));
+        setFavorites(favoriteIds);
       }
-      return newFavorites;
-    });
+
+      // Load shelf items
+      const shelfResponse = await fetch(
+        `http://localhost:3000/api/shelf/${user.id}`
+      );
+      if (shelfResponse.ok) {
+        const shelfData = await shelfResponse.json();
+        const shelfIds = new Set(shelfData.map((item) => item.book_id));
+        setShelfItems(shelfIds);
+      }
+    } catch (error) {
+      console.error("Error loading user data:", error);
+    }
   };
 
-  const handleToggleToShelf = (book) => {
+  const handleToggleFavorite = async (book) => {
+    if (!user) {
+      alert("Please sign in to add favorites");
+      return;
+    }
+
     const bookId = book.id;
-    setShelfItems((prev) => {
-      const newShelfItems = new Set(prev);
-      if (newShelfItems.has(bookId)) {
-        newShelfItems.delete(bookId);
-        console.log("Removed from shelf:", book.volumeInfo.title);
+    const isFavorited = favorites.has(bookId);
+
+    try {
+      if (isFavorited) {
+        // Remove from favorites
+        const response = await fetch("http://localhost:3000/api/favorites", {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            supabase_id: user.id,
+            book_id: bookId,
+          }),
+        });
+
+        if (response.ok) {
+          setFavorites((prev) => {
+            const newFavorites = new Set(prev);
+            newFavorites.delete(bookId);
+            return newFavorites;
+          });
+          console.log("Removed from favorites:", book.volumeInfo.title);
+        }
       } else {
-        newShelfItems.add(bookId);
-        console.log("Added to shelf:", book.volumeInfo.title);
+        // Add to favorites
+        const response = await fetch("http://localhost:3000/api/favorites", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            supabase_id: user.id,
+            book_id: bookId,
+            book_title: book.volumeInfo.title,
+            book_data: book,
+          }),
+        });
+
+        if (response.ok) {
+          setFavorites((prev) => {
+            const newFavorites = new Set(prev);
+            newFavorites.add(bookId);
+            return newFavorites;
+          });
+          console.log("Added to favorites:", book.volumeInfo.title);
+        }
       }
-      return newShelfItems;
-    });
+    } catch (error) {
+      console.error("Error toggling favorite:", error);
+    }
+  };
+
+  const handleToggleToShelf = async (book) => {
+    if (!user) {
+      alert("Please sign in to add to shelf");
+      return;
+    }
+
+    const bookId = book.id;
+    const isOnShelf = shelfItems.has(bookId);
+
+    try {
+      if (isOnShelf) {
+        // Remove from shelf
+        const response = await fetch("http://localhost:3000/api/shelf", {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            supabase_id: user.id,
+            book_id: bookId,
+          }),
+        });
+
+        if (response.ok) {
+          setShelfItems((prev) => {
+            const newShelfItems = new Set(prev);
+            newShelfItems.delete(bookId);
+            return newShelfItems;
+          });
+          console.log("Removed from shelf:", book.volumeInfo.title);
+        }
+      } else {
+        // Add to shelf
+        const response = await fetch("http://localhost:3000/api/shelf", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            supabase_id: user.id,
+            book_id: bookId,
+            book_title: book.volumeInfo.title,
+            book_data: book,
+          }),
+        });
+
+        if (response.ok) {
+          setShelfItems((prev) => {
+            const newShelfItems = new Set(prev);
+            newShelfItems.add(bookId);
+            return newShelfItems;
+          });
+          console.log("Added to shelf:", book.volumeInfo.title);
+        }
+      }
+    } catch (error) {
+      console.error("Error toggling shelf:", error);
+    }
   };
 
   if (books.length === 0) return <p>No books to show</p>;

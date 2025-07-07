@@ -1,48 +1,46 @@
 .book-card {
-    background-color: #fff;           /* White background */
-    border: 1px solid #ddd;           /* Light gray border */
-    border-radius: 8px;               /* Rounded corners */
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1); /* Subtle shadow */
-    width: 200px;                    /* Fixed width */
-    height: 500px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    cursor: pointer;
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
-    margin-bottom: 40px;
-    text-align: center;
-  }
+  background-color: #fff; /* White background */
+  border: 1px solid #ddd; /* Light gray border */
+  border-radius: 8px; /* Rounded corners */
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+  width: 200px; /* Fixed width */
+  height: 500px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  margin-bottom: 40px;
+  text-align: center;
+}
 
-  /* .book-card:hover {
+/* .book-card:hover {
     transform: scale(1.05);
   } */
 
+.book-card img {
+  width: 100%; /* Fixed image width */
+  height: 300px; /* Keep aspect ratio */
+  margin-bottom: 12px;
+  border-radius: 4px;
+  object-fit: cover;
+  image-rendering: high-quality;
+  image-rendering: auto; /* Default: browser decides */
+  image-rendering: crisp-edges; /* Tries to avoid blur (best for pixel art or sharp lines) */
+}
 
-  .book-card img {
-    width: 100%;                   /* Fixed image width */
-    height: 300px;                   /* Keep aspect ratio */
-    margin-bottom: 12px;
-    border-radius: 4px;
-    object-fit: cover;
-    image-rendering: high-quality;
-    image-rendering: auto;         /* Default: browser decides */
-    image-rendering: crisp-edges;  /* Tries to avoid blur (best for pixel art or sharp lines) */
+.book-card .title {
+  font-weight: 600;
+  font-size: 1rem;
+  text-align: center;
+  margin-bottom: 8px;
+  color: #333;
+  font-family: "Times New Roman", Times, serif;
+}
 
-  }
-
-  .book-card .title {
-    font-weight: 600;
-    font-size: 1rem;
-    text-align: center;
-    margin-bottom: 8px;
-    color: #333;
-    font-family: 'Times New Roman', Times, serif;
-  }
-
-  .book-card .author {
-    font-size: 1.1rem;
-    font-style: italic;
-    color: #666;
-    text-align: center;
-  }
+.book-card .author {
+  font-size: 1.1rem;
+  font-style: italic;
+  color: #666;
+  text-align: center;
+}

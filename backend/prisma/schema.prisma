@@ -9,11 +9,39 @@ datasource db {
 }
 
 model User {
-  id          Int      @id @default(autoincrement())
-  first_name  String?  @db.VarChar(255)
-  last_name   String?  @db.VarChar(255)
-  email       String   @unique @db.VarChar(255)
-  supabase_id String   @unique @db.VarChar(255)
-  created_at  DateTime @default(now())
-  updated_at  DateTime @updatedAt
+  id          Int        @id @default(autoincrement())
+  first_name  String?    @db.VarChar(255)
+  last_name   String?    @db.VarChar(255)
+  email       String     @unique @db.VarChar(255)
+  supabase_id String     @unique @db.VarChar(255)
+  created_at  DateTime   @default(now())
+  updated_at  DateTime   @updatedAt
+  favorites   Favorite[]
+  shelf_items ShelfItem[]
+}
+
+model Favorite {
+  id         Int      @id @default(autoincrement())
+  user_id    Int
+  book_id    String   @db.VarChar(255)
+  book_title String?  @db.VarChar(500)
+  book_data  Json?    // Store complete book data from Google Books API
+  created_at DateTime @default(now())
+
+  user User @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@unique([user_id, book_id])
+}
+
+model ShelfItem {
+  id         Int      @id @default(autoincrement())
+  user_id    Int
+  book_id    String   @db.VarChar(255)
+  book_title String?  @db.VarChar(500)
+  book_data  Json?    // Store complete book data from Google Books API
+  created_at DateTime @default(now())
+
+  user User @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@unique([user_id, book_id])
 }
