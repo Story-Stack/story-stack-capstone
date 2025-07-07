@@ -1,10 +1,10 @@
 import "./Dashboard.css";
 import Search from "../Search";
 import BookList from "../BookList";
+import Sidebar from "../components/FavoritesSidebar";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../../utils/supabaseClient";
-
 
 function Dashboard() {
   // books is the list of results received from the Search component
@@ -12,18 +12,15 @@ function Dashboard() {
   const [books, setBooks] = useState([]);
   const navigate = useNavigate();
 
-
   const handleResults = (results) => {
     setBooks(results); // update the list of results
-
-
-
   };
 
-    const handleLogout = async () => {
+  const handleLogout = async () => {
     await supabase.auth.signOut();
     navigate("/");
   };
+
   return (
     <div className="dashboard">
       <header>
@@ -33,7 +30,9 @@ function Dashboard() {
 
       <Search onResults={handleResults} />
       <div className="page-layout">
-        <aside className="left-sidebar">{/* Profile and Favorites */}</aside>
+        <aside className="left-sidebar">
+          <Sidebar />
+        </aside>
 
         <main className="main-content">
           <BookList books={books} />

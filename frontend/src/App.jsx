@@ -321,14 +321,14 @@ function App() {
 
                 {/* Protected Routes */}
 
-                {/* <Route
+                <Route
                   path="/favorites"
                   element={
                     <ProtectedRoute>
                       <FavoritesPage />
                     </ProtectedRoute>
                   }
-                /> */}
+                />
                 <Route
                   path="/discussion/:bookId"
                   element={
