@@ -1,0 +1,6 @@
+.shelf-grid{
+    display: flex;
+    flex-wrap: wrap;
+    gap: 50px;
+    padding: 20px;
+}
