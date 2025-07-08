@@ -24,7 +24,7 @@ model Favorite {
   id         Int      @id @default(autoincrement())
   user_id    Int
   book_id    String   @db.VarChar(255)
-  book_title String?  @db.VarChar(500)
+  book_title String  @db.VarChar(500)
   book_data  Json?    // Store complete book data from Google Books API
   created_at DateTime @default(now())
 
@@ -37,7 +37,7 @@ model ShelfItem {
   id         Int      @id @default(autoincrement())
   user_id    Int
   book_id    String   @db.VarChar(255)
-  book_title String?  @db.VarChar(500)
+  book_title String  @db.VarChar(500)
   book_data  Json?    // Store complete book data from Google Books API
   created_at DateTime @default(now())
 

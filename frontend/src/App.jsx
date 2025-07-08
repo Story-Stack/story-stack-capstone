@@ -13,6 +13,7 @@ import "./App.css";
 import HomePage from "./pages/HomePage";
 import Dashboard from "./pages/Dashboard";
 import FavoritesPage from "./pages/FavoritesPage";
+import ShelfPage from "./pages/ShelfPage";
 import DiscussionPage from "./pages/DiscussionPage";
 import SignIn from "./pages/authentication-pages/SignIn";
 import Register from "./pages/authentication-pages/Register";
@@ -75,6 +76,7 @@ const Navigation = () => {
     if (currentPath === "/dashboard") {
       return user ? (
         <>
+          <a href="/">Home</a> &nbsp;
           <span className="user-greeting">
             Welcome, {user.email.split("@")[0]}!
           </span>
@@ -108,7 +110,9 @@ const Navigation = () => {
         {user ? (
           <>
             <a href="/dashboard">Dashboard</a>
-            <a href="/favorites">My Favorites</a>
+            {currentPath !== "/favorites" && (
+              <a href="/favorites">My Favorites</a>
+            )}
             {/* <button onClick={logout} className="logout-btn">
               Logout
             </button> */}
@@ -340,6 +344,14 @@ function App() {
                   element={
                     <ProtectedRoute>
                       <FavoritesPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/shelf"
+                  element={
+                    <ProtectedRoute>
+                      <ShelfPage />
                     </ProtectedRoute>
                   }
                 />

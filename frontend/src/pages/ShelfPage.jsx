@@ -2,11 +2,13 @@ import { useState, useEffect } from "react";
 import { useAuth } from "../App";
 import BookCard from "../BookCard";
 import "./ShelfPage.css";
+import { useNavigate } from "react-router-dom";
 
 function ShelfPage() {
   const [shelf, setShelf] = useState([]);
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (user) {
@@ -102,6 +104,7 @@ function ShelfPage() {
 
   return (
     <div className="shelf-page">
+      <button onClick={() => navigate("/dashboard")}>❮ Previous</button>
       <div className="shelf-header">
         <h1>My Shelf ({shelf.length})</h1>
         <p>Books you've added to your shelf collection</p>
@@ -147,7 +150,7 @@ function ShelfPage() {
               <BookCard
                 key={shelfItem.book_id}
                 book={book}
-                isFavorite={false} 
+                isFavorite={false}
                 toShelf={true} // Always true since this is the shelf page
                 onToggleFavorite={() => handleToggleToShelf(book)}
                 onToggleToShelf={() => handleRemoveFromShelf(book)}

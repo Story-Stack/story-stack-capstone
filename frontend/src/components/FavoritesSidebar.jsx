@@ -5,14 +5,17 @@ import "./FavoritesSidebar.css";
 
 function Sidebar() {
   const [favoritesCount, setFavoritesCount] = useState(0);
+  const [shelfCount, setShelfCount] = useState(0);
   const { user } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
     if (user) {
       loadFavoritesCount();
+      loadShelfCount();
     } else {
       setFavoritesCount(0);
+      setShelfCount(0);
     }
   }, [user]);
 
@@ -36,12 +39,40 @@ function Sidebar() {
     }
   };
 
+  const loadShelfCount = async () => {
+    if (!user) return;
+
+    try {
+      const response = await fetch(
+        `http://localhost:3000/api/shelf/${user.id}`
+      );
+
+      if (response.ok) {
+        const shelfData = await response.json();
+        setShelfCount(shelfData.length);
+      } else {
+        setShelfCount(0);
+      }
+    } catch (error) {
+      console.error("Error loading shelf count:", error);
+      setShelfCount(0);
+    }
+  };
+
   const handleFavoritesClick = () => {
     if (!user) {
       alert("Please sign in to view favorites");
       return;
     }
     navigate("/favorites");
+  };
+
+  const handleShelfClick = () => {
+    if (!user) {
+      alert("Please sign in to view shelf");
+      return;
+    }
+    navigate("/shelf");
   };
 
   return (
@@ -55,13 +86,11 @@ function Sidebar() {
           )}
         </button>
 
-        {/* Add more navigation tabs here in the future */}
-        <button className="sidebar-tab">
+        <button className="sidebar-tab" onClick={handleShelfClick}>
           <span className="tab-icon">📚</span>
           <span className="tab-text">My Shelf</span>
+          {shelfCount > 0 && <span className="tab-count">{shelfCount}</span>}
         </button>
-
-
       </nav>
     </div>
   );

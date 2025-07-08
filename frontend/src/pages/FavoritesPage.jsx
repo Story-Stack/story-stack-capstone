@@ -1,12 +1,15 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "../App";
 import BookCard from "../BookCard";
+import { useNavigate } from "react-router-dom";
+
 import "./FavoritesPage.css";
 
 function FavoritesPage() {
   const [favorites, setFavorites] = useState([]);
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
+const navigate = useNavigate();
 
   useEffect(() => {
     if (user) {
@@ -76,6 +79,7 @@ function FavoritesPage() {
   if (!user) {
     return (
       <div className="favorites-page">
+
         <div className="favorites-header">
           <h1>My Favorites</h1>
         </div>
@@ -101,6 +105,10 @@ function FavoritesPage() {
 
   return (
     <div className="favorites-page">
+      <button onClick={() => navigate("/dashboard")}>❮ Previous</button>
+
+
+
       <div className="favorites-header">
         <h1>My Favorites ({favorites.length})</h1>
         <p>Books you've added to your favorites collection</p>
@@ -147,7 +155,7 @@ function FavoritesPage() {
                 book={book}
                 isFavorite={true}
                 toShelf={false}
-                
+
                 onToggleFavorite={() => handleRemoveFromFavorites(book)}
                 onToggleToShelf={() => handleToggleToShelf(book)}
               />
