@@ -27,15 +27,18 @@ function Dashboard() {
     "contemporary literature",
   ];
 
-  // Load hot picks on component mount and set up rotation
+  // Load hot picks on component mount only
   useEffect(() => {
     loadHotPicks();
+  }, []);
+
+  // Set up rotation interval when showing hot picks
+  useEffect(() => {
+    if (!isShowingHotPicks) return;
 
     // Rotate hot picks every 30 minutes (1800000 ms)
     const interval = setInterval(() => {
-      if (isShowingHotPicks) {
-        loadHotPicks();
-      }
+      loadHotPicks();
     }, 1800000);
 
     return () => clearInterval(interval);
@@ -78,8 +81,14 @@ function Dashboard() {
   };
 
   const handleResults = (results) => {
-    setBooks(results); // update the list of results
-    setIsShowingHotPicks(false); // User searched, no longer showing hot picks
+    if (results.length === 0) {
+      // Search was cleared, return to hot picks
+      loadHotPicks();
+    } else {
+      // User searched and got results
+      setBooks(results);
+      setIsShowingHotPicks(false);
+    }
   };
 
   const handleLogout = async () => {
@@ -103,7 +112,7 @@ function Dashboard() {
       {/* Hot Picks Header */}
       {isShowingHotPicks && (
         <div className="hot-picks-header">
-          <h2>Hot Picks</h2>
+          <h2>Popular Picks</h2>
           <button onClick={refreshHotPicks} className="refresh-btn">
             🔄 Refresh Picks
           </button>

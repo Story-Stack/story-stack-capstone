@@ -12,7 +12,7 @@ function ShelfPage() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (user)  {
+    if (user) {
       loadShelf();
       loadFavoriteItems();
     } else {

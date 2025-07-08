@@ -48,7 +48,6 @@ function BookList({ books, onFavoritesUpdate }) {
         const shelfData = await shelfResponse.json();
         const shelfIds = new Set(shelfData.map((item) => item.book_id));
         setShelfItems(shelfIds);
-     ;
       } else {
         alert("Failed to load shelf");
         setShelfItems(new Set());

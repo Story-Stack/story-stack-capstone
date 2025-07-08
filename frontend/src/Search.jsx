@@ -6,6 +6,10 @@ function Search({ onResults }) {
   const [query, setQuery] = useState(""); //query stores what's typed in the search bar
   const [loading, setLoading] = useState(false); // loading is used to show "Searching..." on the button while the API call runs
 
+  const handleClear = () => {
+    setQuery("");
+    onResults([]); // Clear search results
+  };
   const handleSubmit = async (e) => {
     e.preventDefault(); // Prevent default form submission behavior
     if (!query.trim()) return; // avoid empty searches
@@ -34,18 +38,26 @@ function Search({ onResults }) {
   };
 
   return (
-    <div>
-    <form onSubmit={handleSubmit}>
-      <input
-        type="text"
-        value={query}
-        onChange={(e) => setQuery(e.target.value)}
-        placeholder="Search books...."
-      />
-      <button type="submit" disabled={loading}>
-        {loading ? "Searching..." : "Search"}
-      </button>
-    </form>
+    <div className="search-section">
+      <form onSubmit={handleSubmit}>
+        <input className="search-input"
+          type="text"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="Search books...."
+        />
+        <button type="submit" disabled={loading}>
+          {loading ? "Searching..." : "Search"}
+        </button>
+        <button
+          className="clear-search"
+          type="button"
+          onClick={handleClear}
+          aria-label="Clear Search"
+        >
+          <span className="close">&times;</span>
+        </button>
+      </form>
     </div>
   );
 }
