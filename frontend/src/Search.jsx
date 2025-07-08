@@ -27,7 +27,6 @@ function Search({ onResults }) {
 
       onResults(books);
     } catch (err) {
-      console.error("Error fetching books:", err);
       onResults([]); // If there's an error, show an empty array of books
     } finally {
       setLoading(false); // Set loading to false to hide "Searching..." on the button

@@ -32,11 +32,9 @@ function ShelfPage() {
         const shelfData = await response.json();
         setShelf(shelfData);
       } else {
-        // console.error("Failed to load shelf");
         setShelf([]);
       }
     } catch (error) {
-    //   console.error("Error loading shelf:", error);
       setShelf([]);
     } finally {
       setLoading(false);
@@ -61,19 +59,15 @@ function ShelfPage() {
       if (response.ok) {
         // Remove from local state
         setShelf((prev) => prev.filter((item) => item.book_id !== book.id));
-        console.log("Removed from Shelf:", book.volumeInfo?.title);
       } else {
-        console.error("Failed to remove from shelf");
         alert("Failed to remove from shelf. Please try again.");
       }
     } catch (error) {
-      console.error("Error removing from shelf:", error);
       alert("Network error. Please try again.");
     }
   };
 
   const handleToggleToShelf = async (book) => {
-    // console.log("Toggle shelf for:", book.volumeInfo?.title);
   };
 
   if (!user) {
