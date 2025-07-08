@@ -26,7 +26,9 @@ function BookModal({book, onClose}) {
         <p><strong>Author(s):</strong> {authors?.join(', ') || 'Unknown'}</p>
         <p><strong>Publisher:</strong> {publisher || 'N/A'}</p>
         <p><strong>Published:</strong> {publishedDate || 'N/A'}</p>
+        <div className='overview'> 
         <p style={{ marginTop: '1rem' }}>{description || 'No description available.'}</p>
+        </div>
         {previewLink && (
           <a href={previewLink} target="_blank" rel="noopener noreferrer" style={{ marginTop: '1rem', display: 'inline-block' }}>
             📖 Preview on Google Books

@@ -1,1 +1,11 @@
 
+.search-section{
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.search-input{
+    width: 250px;
+
+}
