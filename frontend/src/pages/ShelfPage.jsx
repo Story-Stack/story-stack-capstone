@@ -32,11 +32,11 @@ function ShelfPage() {
         const shelfData = await response.json();
         setShelf(shelfData);
       } else {
-        console.error("Failed to load shelf");
+        // console.error("Failed to load shelf");
         setShelf([]);
       }
     } catch (error) {
-      console.error("Error loading shelf:", error);
+    //   console.error("Error loading shelf:", error);
       setShelf([]);
     } finally {
       setLoading(false);
@@ -73,7 +73,7 @@ function ShelfPage() {
   };
 
   const handleToggleToShelf = async (book) => {
-    console.log("Toggle shelf for:", book.volumeInfo?.title);
+    // console.log("Toggle shelf for:", book.volumeInfo?.title);
   };
 
   if (!user) {

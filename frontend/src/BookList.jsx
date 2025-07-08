@@ -13,7 +13,6 @@ function BookList({ books, onFavoritesUpdate }) {
     if (user) {
       loadUserData();
     } else {
-
       // Clear data when user logs out
       setFavorites(new Set());
       setShelfItems(new Set());
@@ -60,19 +59,19 @@ function BookList({ books, onFavoritesUpdate }) {
         console.log("Shelf data:", shelfData);
         const shelfIds = new Set(shelfData.map((item) => item.book_id));
         setShelfItems(shelfIds);
-        console.log("Set shelf items:", shelfIds);
+        alert("Set shelf items:" + shelfIds.message);
       } else {
         const errorData = await shelfResponse.json();
-        console.log("Shelf error:", errorData);
+        alert("Shelf error:" + errorData.message);
       }
     } catch (error) {
-      console.error("Error loading user data:", error);
+         alert("Error loading user data: " + error.message);
     }
   };
 
   const handleToggleFavorite = async (book) => {
-    console.log("handleToggleFavorite called with book:", book);
-    console.log("Current user:", user);
+    // console.log("handleToggleFavorite called with book:", book);
+    // console.log("Current user:", user);
 
     if (!user) {
       alert("Please sign in to add favorites");
@@ -82,9 +81,9 @@ function BookList({ books, onFavoritesUpdate }) {
     const bookId = book.id;
     const isFavorited = favorites.has(bookId);
 
-    console.log("Book ID:", bookId);
-    console.log("Is favorited:", isFavorited);
-    console.log("Current favorites set:", favorites);
+    // console.log("Book ID:", bookId);
+    // console.log("Is favorited:", isFavorited);
+    // console.log("Current favorites set:", favorites);
 
     try {
       if (isFavorited) {
@@ -106,16 +105,15 @@ function BookList({ books, onFavoritesUpdate }) {
             newFavorites.delete(bookId);
             return newFavorites;
           });
-          console.log("Removed from favorites:", book.volumeInfo.title);
+          // console.log("Removed from favorites:", book.volumeInfo.title);
 
           // Notify parent component to refresh favorites sidebar
           if (onFavoritesUpdate) {
             onFavoritesUpdate();
           }
-
         } else {
           const errorData = await response.json();
-          console.error("Failed to remove from favorites:", errorData);
+          // console.error("Failed to remove from favorites:", errorData);
           alert("Failed to remove from favorites. Please try again.");
         }
       } else {
@@ -139,28 +137,27 @@ function BookList({ books, onFavoritesUpdate }) {
             newFavorites.add(bookId);
             return newFavorites;
           });
-          console.log("Added to favorites:", book.volumeInfo.title);
+          // console.log("Added to favorites:", book.volumeInfo.title);
 
           // Notify parent component to refresh favorites sidebar
           if (onFavoritesUpdate) {
             onFavoritesUpdate();
           }
-
         } else {
           const errorData = await response.json();
-          console.error("Failed to add to favorites:", errorData);
+          // console.error("Failed to add to favorites:", errorData);
           alert("Failed to add to favorites. Please try again.");
         }
       }
     } catch (error) {
-      console.error("Error toggling favorite:", error);
+      // console.error("Error toggling favorite:", error);
       alert("Network error. Please check your connection and try again.");
     }
   };
 
   const handleToggleToShelf = async (book) => {
-    console.log("handleToggleToShelf called with book:", book);
-    console.log("Current user:", user);
+    // console.log("handleToggleToShelf called with book:", book);
+    // console.log("Current user:", user);
 
     if (!user) {
       alert("Please sign in to add to shelf");
@@ -170,9 +167,9 @@ function BookList({ books, onFavoritesUpdate }) {
     const bookId = book.id;
     const isOnShelf = shelfItems.has(bookId);
 
-    console.log("Book ID:", bookId);
-    console.log("Is on shelf:", isOnShelf);
-    console.log("Current shelf items set:", shelfItems);
+    // console.log("Book ID:", bookId);
+    // console.log("Is on shelf:", isOnShelf);
+    // console.log("Current shelf items set:", shelfItems);
 
     try {
       if (isOnShelf) {
@@ -197,7 +194,7 @@ function BookList({ books, onFavoritesUpdate }) {
           console.log("Removed from shelf:", book.volumeInfo.title);
         } else {
           const errorData = await response.json();
-          console.error("Failed to remove from shelf:", errorData);
+          // console.error("Failed to remove from shelf:", errorData);
           alert("Failed to remove from shelf. Please try again.");
         }
       } else {
@@ -221,20 +218,25 @@ function BookList({ books, onFavoritesUpdate }) {
             newShelfItems.add(bookId);
             return newShelfItems;
           });
-          console.log("Added to shelf:", book.volumeInfo.title);
+          // console.log("Added to shelf:", book.volumeInfo.title);
         } else {
           const errorData = await response.json();
-          console.error("Failed to add to shelf:", errorData);
+          // console.error("Failed to add to shelf:", errorData);
           alert("Failed to add to shelf. Please try again.");
         }
       }
     } catch (error) {
-      console.error("Error toggling shelf:", error);
+      // console.error("Error toggling shelf:", error);
       alert("Network error. Please check your connection and try again.");
     }
   };
 
-  if (books.length === 0) return <p>No books to show</p>;
+  if (books.length === 0)
+    return (
+      <div className="loader-container">
+        <div className="loader"></div>
+      </div>
+    );
 
   return (
     <div className="book-list">

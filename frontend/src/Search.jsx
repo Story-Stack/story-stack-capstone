@@ -35,6 +35,7 @@ function Search({ onResults }) {
   };
 
   return (
+    <div>
     <form onSubmit={handleSubmit}>
       <input
         type="text"
@@ -46,6 +47,7 @@ function Search({ onResults }) {
         {loading ? "Searching..." : "Search"}
       </button>
     </form>
+    </div>
   );
 }
 
