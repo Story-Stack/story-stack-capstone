@@ -28,8 +28,12 @@
   .main-content {
     flex: 2 1 600px; /* bigger flex-grow to get most space */
     max-width: 1000px;
-    background-color: #fff; /* optional */
+    background-color: #fff; 
     padding: 20px;
     box-shadow: 0 0 10px rgba(0,0,0,0.1);
     overflow-y: auto;
+  }
+
+  .header{
+    text-align: center;
   }
