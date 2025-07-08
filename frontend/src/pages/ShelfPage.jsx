@@ -6,6 +6,7 @@ import { useNavigate } from "react-router-dom";
 
 function ShelfPage() {
   const [shelf, setShelf] = useState([]);
+  const [favoriteItems, setFavoriteItems] = useState(new Set());
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -13,11 +14,34 @@ function ShelfPage() {
   useEffect(() => {
     if (user) {
       loadShelf();
+      loadFavoriteItems();
     } else {
       setShelf([]);
+      setFavoriteItems(new Set());
       setLoading(false);
     }
   }, [user]);
+
+  const loadFavoriteItems = async () => {
+    if (!user) return;
+
+    try {
+      const response = await fetch(
+        `http://localhost:3000/api/favorites/${user.id}`
+      );
+
+      if (response.ok) {
+        const favoritesData = await response.json();
+        const favoriteIds = new Set(favoritesData.map((fav) => fav.book_id));
+        setFavoriteItems(favoriteIds);
+      } else {
+        setFavoriteItems(new Set());
+      }
+    } catch (error) {
+      alert("Error loading favorite items:", error);
+      setFavoriteItems(new Set());
+    }
+  };
 
   const loadShelf = async () => {
     if (!user) return;
@@ -67,7 +91,74 @@ function ShelfPage() {
     }
   };
 
-  const handleToggleToShelf = async (book) => {
+  const handleToggleToFavorites = async (book) => {
+    if (!user) return;
+
+    try {
+      // Check if book is already in favorites by making a request
+      const checkResponse = await fetch(
+        `http://localhost:3000/api/favorites/${user.id}`
+      );
+
+      let isFavorite = false;
+      if (checkResponse.ok) {
+        const favoritesData = await checkResponse.json();
+        isFavorite = favoritesData.some((fav) => fav.book_id === book.id);
+      }
+
+      if (isFavorite) {
+        // Remove from favorites
+        const response = await fetch("http://localhost:3000/api/favorites", {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            supabase_id: user.id,
+            book_id: book.id,
+          }),
+        });
+
+        if (response.ok) {
+          // Update local favorites state
+          setFavoriteItems((prev) => {
+            const newFavoriteItems = new Set(prev);
+            newFavoriteItems.delete(book.id);
+            return newFavoriteItems;
+          });
+        } else {
+          alert("Failed to remove from favorites. Please try again.");
+        }
+      } else {
+        // Add to favorites
+        const response = await fetch("http://localhost:3000/api/favorites", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            supabase_id: user.id,
+            book_id: book.id,
+            book_title: book.volumeInfo.title,
+            book_data: book,
+          }),
+        });
+
+        if (response.ok) {
+          // Update local favorites state
+          setFavoriteItems((prev) => {
+            const newFavoriteItems = new Set(prev);
+            newFavoriteItems.add(book.id);
+            return newFavoriteItems;
+          });
+        } else {
+          alert("Failed to add to favorites. Please try again.");
+        }
+      }
+    } catch (error) {
+      console.error("Error toggling favorites:", error);
+      alert("Network error. Please try again.");
+    }
   };
 
   if (!user) {
@@ -144,9 +235,9 @@ function ShelfPage() {
               <BookCard
                 key={shelfItem.book_id}
                 book={book}
-                isFavorite={false}
+                isFavorite={favoriteItems.has(book.id)}
                 toShelf={true} // Always true since this is the shelf page
-                onToggleFavorite={() => handleToggleToShelf(book)}
+                onToggleFavorite={() => handleToggleToFavorites(book)}
                 onToggleToShelf={() => handleRemoveFromShelf(book)}
               />
             );

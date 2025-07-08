@@ -247,7 +247,7 @@ const FavoritesProvider = ({ children }) => {
         setFavorites(data);
       }
     } catch (error) {
-      alert("Failed to load favorites:", error);
+      console.error("Failed to load favorites:", error);
     }
   };
 
@@ -272,7 +272,7 @@ const FavoritesProvider = ({ children }) => {
         return { success: true };
       }
     } catch (error) {
-      alert("Failed to add favorite:", error);
+      console.error("Failed to add favorite:", error);
     }
     return { success: false };
   };
@@ -296,7 +296,7 @@ const FavoritesProvider = ({ children }) => {
         return { success: true };
       }
     } catch (error) {
-      alert("Failed to remove favorite:", error);
+      console.error("Failed to remove favorite:", error);
     }
     return { success: false };
   };
