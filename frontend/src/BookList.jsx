@@ -35,7 +35,7 @@ function BookList({ books, onFavoritesUpdate }) {
         const favoriteIds = new Set(favoritesData.map((fav) => fav.book_id));
         setFavorites(favoriteIds);
       } else {
-        console.error("Failed to load favorites:", favoritesResponse.status);
+        alert("Failed to load favorites");
         setFavorites(new Set());
       }
 
@@ -48,13 +48,13 @@ function BookList({ books, onFavoritesUpdate }) {
         const shelfData = await shelfResponse.json();
         const shelfIds = new Set(shelfData.map((item) => item.book_id));
         setShelfItems(shelfIds);
-        console.log("Loaded shelf items:", shelfIds.size, "items");
+     ;
       } else {
-        console.error("Failed to load shelf:", shelfResponse.status);
+        alert("Failed to load shelf");
         setShelfItems(new Set());
       }
     } catch (error) {
-      console.error("Error loading user data:", error);
+      alert("Error loading user data");
       setFavorites(new Set());
       setShelfItems(new Set());
     }

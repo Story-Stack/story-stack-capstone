@@ -103,7 +103,7 @@ function Dashboard() {
       {/* Hot Picks Header */}
       {isShowingHotPicks && (
         <div className="hot-picks-header">
-          <h2>🔥 Hot Picks for You</h2>
+          <h2>Hot Picks</h2>
           <button onClick={refreshHotPicks} className="refresh-btn">
             🔄 Refresh Picks
           </button>
