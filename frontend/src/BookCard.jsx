@@ -9,6 +9,8 @@ function BookCard({
   toShelf = false,
   onToggleFavorite,
   onToggleToShelf,
+  onJoinDiscussion,
+  isBookJoined,
 }) {
   const { title, authors } = book.volumeInfo;
   const [showModal, setShowModal] = useState(false);
@@ -70,7 +72,12 @@ function BookCard({
       </div>
 
       {showModal && (
-        <BookModal book={book} onClose={() => setShowModal(false)} />
+        <BookModal
+          book={book}
+          onClose={() => setShowModal(false)}
+          onJoinDiscussion={onJoinDiscussion}
+          isJoined={isBookJoined ? isBookJoined(book.id) : false}
+        />
       )}
     </div>
   );
