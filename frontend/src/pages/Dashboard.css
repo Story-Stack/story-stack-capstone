@@ -28,12 +28,26 @@
   .main-content {
     flex: 2 1 600px; /* bigger flex-grow to get most space */
     max-width: 1000px;
-    background-color: #fff; 
+    background-color: #fff;
     padding: 20px;
     box-shadow: 0 0 10px rgba(0,0,0,0.1);
     overflow-y: auto;
   }
 
-  .header{
-    text-align: center;
-  }
+
+.logout-btn{
+  position: absolute;
+  top: 10px;
+  left: 92%;
+  margin: 10px;
+}
+
+.page-header{
+  display: flex;
+  justify-content: center;
+}
+
+.hot-picks-header{
+  display: flex;
+  justify-content: center;
+}

@@ -113,9 +113,7 @@ const Navigation = () => {
             {currentPath !== "/favorites" && (
               <a href="/favorites">My Favorites</a>
             )}
-            {/* <button onClick={logout} className="logout-btn">
-              Logout
-            </button> */}
+          
             <span className="user-greeting">Welcome, {user.email}!</span>
           </>
         ) : (
@@ -131,9 +129,7 @@ const Navigation = () => {
 
   return (
     <nav className="app-navigation">
-      <div className="nav-brand">
-        <h1>Story Stack</h1>
-      </div>
+      <div className="nav-brand"></div>
       <div className="nav-links">{renderNavigationLinks()}</div>
     </nav>
   );

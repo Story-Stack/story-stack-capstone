@@ -1,15 +1,21 @@
 import { useState } from "react";
 import { supabase } from "../../../utils/supabaseClient";
-import { useNavigate } from "react-router-dom";
 import { Link } from "react-router-dom";
+import "./Register.css";
 
 function Register() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
 
   const handleSignUp = async (e) => {
     e.preventDefault();
+    setLoading(true);
+    setError("");
+    setSuccess("");
+
     const { error } = await supabase.auth.signUp({
       email,
       password,
@@ -19,13 +25,16 @@ function Register() {
     });
 
     if (error) {
-      alert(error.message);
+      setError(error.message);
     } else {
-      alert("Check your email for the confirmation link.");
+      setSuccess("Success! Check your email for the confirmation link.");
     }
+
+    setLoading(false);
   };
 
-  const handleGoogleSignIn = async () => {
+  const handleGoogleSignUp = async () => {
+    setError("");
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
@@ -33,14 +42,33 @@ function Register() {
       },
     });
 
-    if (error) alert(error.message);
+    if (error) {
+      setError(error.message);
+    }
   };
+
   return (
     <div className="register-container">
-      <h1>Create an account today!</h1>
-      <form onSubmit={handleSignUp}>
+      <div className="register-header">
+        <h1>Join StoryStack</h1>
+        <p>Create your account and start your reading journey</p>
+      </div>
+
+      {error && <div className="error-message">{error}</div>}
+      {success && <div className="success-message">{success}</div>}
+
+      <div className="password-requirements">
+        <h4>Password Requirements:</h4>
+        <ul>
+          <li>At least 6 characters long</li>
+          <li>Mix of letters and numbers recommended</li>
+        </ul>
+      </div>
+
+      <form className="register-form" onSubmit={handleSignUp}>
         <input
-          type="text"
+          className="register-input"
+          type="email"
           placeholder="Email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
@@ -48,27 +76,37 @@ function Register() {
         />
 
         <input
+          className="register-input"
           type="password"
           placeholder="Password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           required
+          minLength="6"
         />
-        <button type="submit">Sign Up</button>
 
-        <hr />
+        <button className="register-button" type="submit" disabled={loading}>
+          {loading ? "Creating Account..." : "Create Account"}
+        </button>
       </form>
 
+      <div className="register-divider">
+        <span>or</span>
+      </div>
+
       <button
+        className="google-signup-button"
         type="button"
-        onClick={handleGoogleSignIn}
-        className="google-sigin-button"
+        onClick={handleGoogleSignUp}
       >
         Continue with Google
       </button>
-      <p>
-        Already have an account? <Link to="/signin">Sign in</Link>
-      </p>
+
+      <div className="register-footer">
+        <p>
+          Already have an account? <Link to="/signin">Sign In</Link>
+        </p>
+      </div>
     </div>
   );
 }
