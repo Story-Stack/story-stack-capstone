@@ -40,30 +40,32 @@ function BookCard({
       <div className="book-card" onClick={() => setShowModal(true)}>
         <img src={image} alt={title} />
 
-        <p className="title">{title}</p>
+        <div className="book-card-content">
+          <p className="title">{title}</p>
 
-        <p className="author">{(authors || ["Unknown author"]).join(", ")}</p>
+          <p className="author">{(authors || ["Unknown author"]).join(", ")}</p>
 
-        <div className="card-actions">
-          <button
-            className={`favorite-btn ${isFavorite ? "active" : ""}`}
-            onClick={toggleFavorite}
-            aria-label={
-              isFavorite ? "Remove from favorites" : "Add to favorites"
-            }
-            title={isFavorite ? "Remove from favorites" : "Add to favorites"}
-          >
-            {isFavorite ? "❤️" : "♡"}
-          </button>
+          <div className="card-actions">
+            <button
+              className={`favorite-btn ${isFavorite ? "active" : ""}`}
+              onClick={toggleFavorite}
+              aria-label={
+                isFavorite ? "Remove from favorites" : "Add to favorites"
+              }
+              title={isFavorite ? "Remove from favorites" : "Add to favorites"}
+            >
+              {isFavorite ? "❤️" : "♡"}
+            </button>
 
-          <button
-            className={`watched-btn ${toShelf ? "active" : ""}`}
-            onClick={toggleToShelf}
-            aria-label={toShelf ? "Remove from shelf" : "Add to shelf"}
-            title={toShelf ? "Remove from shelf" : "Add to shelf"}
-          >
-            {toShelf ? "✔️" : "➕"}
-          </button>
+            <button
+              className={`watched-btn ${toShelf ? "active" : ""}`}
+              onClick={toggleToShelf}
+              aria-label={toShelf ? "Remove from shelf" : "Add to shelf"}
+              title={toShelf ? "Remove from shelf" : "Add to shelf"}
+            >
+              {toShelf ? "✔️" : "➕"}
+            </button>
+          </div>
         </div>
       </div>
 

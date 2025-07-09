@@ -91,21 +91,26 @@ function Dashboard() {
     }
   };
 
+  const refreshHotPicks = () => {
+    loadHotPicks();
+  };
+
   const handleLogout = async () => {
     await supabase.auth.signOut();
     navigate("/");
   };
 
-  const refreshHotPicks = () => {
-    loadHotPicks();
-  };
-
   return (
     <div className="dashboard">
-      <h1 className="page-header">Dashboard</h1>
-      <button className="logout-btn" onClick={handleLogout}>
-        Logout
-      </button>
+      <div className="dashboard-header">
+        <button className="previous-btn" onClick={() => navigate("/")}>
+          ❮ Previous
+        </button>
+        <h1 className="page-header">Dashboard</h1>
+        <button className="logout-btn" onClick={handleLogout}>
+          Logout
+        </button>
+      </div>
 
       <Search onResults={handleResults} />
 

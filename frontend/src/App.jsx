@@ -113,7 +113,7 @@ const Navigation = () => {
             {currentPath !== "/favorites" && (
               <a href="/favorites">My Favorites</a>
             )}
-          
+
             <span className="user-greeting">Welcome, {user.email}!</span>
           </>
         ) : (
