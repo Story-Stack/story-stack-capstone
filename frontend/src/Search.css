@@ -3,9 +3,17 @@
     display: flex;
     justify-content: center;
     flex-wrap: wrap;
+    gap: 10px;
 }
 
 .search-input{
     width: 250px;
+    margin-right: 5px;
 
 }
+
+.clear-search{
+    margin-left: 5px;
+}
+
+

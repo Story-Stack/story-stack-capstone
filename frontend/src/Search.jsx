@@ -40,7 +40,8 @@ function Search({ onResults }) {
   return (
     <div className="search-section">
       <form onSubmit={handleSubmit}>
-        <input className="search-input"
+        <input
+          className="search-input"
           type="text"
           value={query}
           onChange={(e) => setQuery(e.target.value)}

@@ -102,10 +102,10 @@ function Dashboard() {
 
   return (
     <div className="dashboard">
-      <header>
-        <h1>Dashboard</h1>
-        <button onClick={handleLogout}>Logout</button>
-      </header>
+      <h1 className="page-header">Dashboard</h1>
+      <button className="logout-btn" onClick={handleLogout}>
+        Logout
+      </button>
 
       <Search onResults={handleResults} />
 
@@ -113,12 +113,12 @@ function Dashboard() {
       {isShowingHotPicks && (
         <div className="hot-picks-header">
           <h2>Popular Picks</h2>
-          <button onClick={refreshHotPicks} className="refresh-btn">
-            🔄 Refresh Picks
-          </button>
         </div>
       )}
 
+      <button onClick={refreshHotPicks} className="refresh-btn">
+        🔄 Refresh Picks
+      </button>
       <div className="page-layout">
         <aside className="left-sidebar">
           <Sidebar />
