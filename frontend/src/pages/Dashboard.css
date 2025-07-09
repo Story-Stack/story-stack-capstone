@@ -87,3 +87,95 @@
   display: flex;
   justify-content: center;
 }
+
+/* Joined Discussions Styling */
+.joined-discussions {
+  padding: 15px;
+  background-color: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  margin-bottom: 20px;
+}
+
+.joined-discussions h3 {
+  margin: 0 0 15px 0;
+  color: #333;
+  font-size: 1.1rem;
+  font-weight: 600;
+  border-bottom: 2px solid #007bff;
+  padding-bottom: 8px;
+}
+
+.joined-discussions p {
+  color: #666;
+  font-style: italic;
+  margin: 0;
+  text-align: center;
+  padding: 20px 0;
+}
+
+.joined-discussions ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.discussion-item {
+  background-color: #f8f9fa;
+  border: 1px solid #e9ecef;
+  border-radius: 6px;
+  padding: 12px;
+  margin-bottom: 8px;
+  font-size: 0.9rem;
+  line-height: 1.4;
+  color: #495057;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: relative;
+}
+
+.discussion-item:hover {
+  background-color: #e9ecef;
+  border-color: #007bff;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 123, 255, 0.1);
+}
+
+.discussion-item:last-child {
+  margin-bottom: 0;
+}
+
+.discussion-text {
+  flex: 1;
+  margin-right: 8px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.leave-discussion-btn {
+  background: none;
+  border: none;
+  color: #dc3545;
+  font-size: 1rem;
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: 3px;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+  opacity: 0.7;
+}
+
+.leave-discussion-btn:hover {
+  background-color: #dc3545;
+  color: white;
+  opacity: 1;
+  transform: scale(1.1);
+}
+
+.discussion-item:hover .leave-discussion-btn {
+  opacity: 1;
+}

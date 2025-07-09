@@ -1,46 +1,71 @@
-import './BookModal.css'
+import "./BookModal.css";
 
-function BookModal({book, onClose}) {
-    const {
-        title,
-        authors,
-        imageLinks,
-        description,
-        previewLink,
-        publisher,
-        publishedDate,
-    } = book.volumeInfo;
+function BookModal({ book, onClose, onJoinDiscussion, isJoined }) {
+  const {
+    title,
+    authors,
+    imageLinks,
+    description,
+    previewLink,
+    publisher,
+    publishedDate,
+  } = book.volumeInfo;
 
-
-
-    return (
-        <div className="modal-overlay" onClick={onClose}>
-          <div className= "modal-content" onClick={(e)=> e.stopPropagation()}>
-          <button onClick={onClose} style={{ position: 'absolute'}}>✖</button>
+  return (
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+        <button onClick={onClose} style={{ position: "absolute" }}>
+          ✖
+        </button>
 
         {imageLinks?.thumbnail && (
-          <img src={imageLinks.thumbnail} alt={title} style={{ width: '120px', float: 'right' }} />
+          <img
+            src={imageLinks.thumbnail}
+            alt={title}
+            style={{ width: "120px", float: "right" }}
+          />
         )}
 
         <h2>{title}</h2>
-        <p><strong>Author(s):</strong> {authors?.join(', ') || 'Unknown'}</p>
-        <p><strong>Publisher:</strong> {publisher || 'N/A'}</p>
-        <p><strong>Published:</strong> {publishedDate || 'N/A'}</p>
-        <div className='overview'> 
-        <p style={{ marginTop: '1rem' }}>{description || 'No description available.'}</p>
+        <p>
+          <strong>Author(s):</strong> {authors?.join(", ") || "Unknown"}
+        </p>
+        <p>
+          <strong>Publisher:</strong> {publisher || "N/A"}
+        </p>
+        <p>
+          <strong>Published:</strong> {publishedDate || "N/A"}
+        </p>
+        <div className="overview">
+          <p style={{ marginTop: "1rem" }}>
+            {description || "No description available."}
+          </p>
         </div>
-        {previewLink && (
-          <a href={previewLink} target="_blank" rel="noopener noreferrer" style={{ marginTop: '1rem', display: 'inline-block' }}>
-            📖 Preview on Google Books
-          </a>
-        )}
-
-       </div>
-
+        <button
+          className={`join-discussion ${isJoined ? "leave-discussion" : ""}`}
+          onClick={() => {
+            if (onJoinDiscussion) {
+              onJoinDiscussion(book);
+            }
+          }}
+        >
+          {isJoined ? "Leave Discussion" : "Join Discussion"}
+        </button>
+        <div>
+          {previewLink && (
+            <a
+              href={previewLink}
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{ marginTop: "1rem", display: "inline-block" }}
+            >
+              📖 Preview on Google Books
+            </a>
+          )}
+        </div>
       </div>
-    )
-
-
+    </div>
+  );
 }
 
 export default BookModal;

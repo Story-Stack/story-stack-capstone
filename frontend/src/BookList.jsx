@@ -3,7 +3,12 @@ import BookCard from "./BookCard";
 import { useState, useEffect } from "react";
 import { useAuth } from "./App";
 
-function BookList({ books, onFavoritesUpdate }) {
+function BookList({
+  books,
+  onFavoritesUpdate,
+  onJoinDiscussion,
+  isBookJoined,
+}) {
   const [favorites, setFavorites] = useState(new Set());
   const [shelfItems, setShelfItems] = useState(new Set());
   const { user } = useAuth();
@@ -210,6 +215,8 @@ function BookList({ books, onFavoritesUpdate }) {
           toShelf={shelfItems.has(book.id)}
           onToggleFavorite={handleToggleFavorite}
           onToggleToShelf={handleToggleToShelf}
+          onJoinDiscussion={onJoinDiscussion}
+          isBookJoined={isBookJoined}
         />
       ))}
     </div>

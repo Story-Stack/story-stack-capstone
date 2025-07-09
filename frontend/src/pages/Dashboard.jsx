@@ -11,6 +11,11 @@ function Dashboard() {
   // setBooks is a function to update the list of results
   const [books, setBooks] = useState([]);
   const [isShowingHotPicks, setIsShowingHotPicks] = useState(true);
+  const [joinedDiscussions, setJoinedDiscussions] = useState(() => {
+    // Load joined discussions from localStorage on component mount
+    const saved = localStorage.getItem('joinedDiscussions');
+    return saved ? JSON.parse(saved) : [];
+  });
   const navigate = useNavigate();
 
   // Popular book categories that rotate
@@ -31,6 +36,11 @@ function Dashboard() {
   useEffect(() => {
     loadHotPicks();
   }, []);
+
+  // Save joined discussions to localStorage whenever it changes
+  useEffect(() => {
+    localStorage.setItem('joinedDiscussions', JSON.stringify(joinedDiscussions));
+  }, [joinedDiscussions]);
 
   // Set up rotation interval when showing hot picks
   useEffect(() => {
@@ -100,6 +110,46 @@ function Dashboard() {
     navigate("/");
   };
 
+  const handleJoinDiscussion = (book) => {
+    const { title, authors } = book.volumeInfo;
+    const discussionItem = {
+      id: book.id,
+      title: title,
+      author: authors ? authors.join(", ") : "Unknown",
+      displayText: `${title} - ${authors ? authors.join(", ") : "Unknown"}`,
+    };
+
+    // Check if already joined
+    const existingDiscussion = joinedDiscussions.find(
+      (item) => item.id === book.id
+    );
+
+    if (existingDiscussion) {
+      // Leave discussion - remove from list
+      setJoinedDiscussions((prev) =>
+        prev.filter((item) => item.id !== book.id)
+      );
+    } else {
+      // Join discussion - add to list
+      setJoinedDiscussions((prev) => [...prev, discussionItem]);
+    }
+  };
+
+  const handleLeaveDiscussion = (discussionId, event) => {
+    event.stopPropagation(); // Prevent navigation when clicking leave button
+    setJoinedDiscussions((prev) =>
+      prev.filter((item) => item.id !== discussionId)
+    );
+  };
+
+  const handleNavigateToDiscussion = (discussionId) => {
+    navigate(`/discussion/${discussionId}`);
+  };
+
+  const isBookJoined = (bookId) => {
+    return joinedDiscussions.some((item) => item.id === bookId);
+  };
+
   return (
     <div className="dashboard">
       <div className="dashboard-header">
@@ -130,10 +180,43 @@ function Dashboard() {
         </aside>
 
         <main className="main-content">
-          <BookList books={books} />
+          <BookList
+            books={books}
+            onJoinDiscussion={handleJoinDiscussion}
+            isBookJoined={isBookJoined}
+          />
         </main>
 
-        <aside className="right-sidebar">{/* Channels */}</aside>
+        <aside className="right-sidebar">
+          <div className="joined-discussions">
+            <h3>Joined Discussions</h3>
+            {joinedDiscussions.length === 0 ? (
+              <p>No discussions joined yet</p>
+            ) : (
+              <ul>
+                {joinedDiscussions.map((discussion) => (
+                  <li
+                    key={discussion.id}
+                    className="discussion-item"
+                    onClick={() => handleNavigateToDiscussion(discussion.id)}
+                    title="Click to open discussion"
+                  >
+                    <span className="discussion-text">
+                      {discussion.displayText}
+                    </span>
+                    <button
+                      className="leave-discussion-btn"
+                      onClick={(e) => handleLeaveDiscussion(discussion.id, e)}
+                      title="Leave discussion"
+                    >
+                      ✕
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        </aside>
       </div>
     </div>
   );
