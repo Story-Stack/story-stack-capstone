@@ -18,13 +18,15 @@ model User {
   updated_at  DateTime   @updatedAt
   favorites   Favorite[]
   shelf_items ShelfItem[]
+  messages    Message[]
+  comments    Comment[]
 }
 
 model Favorite {
   id         Int      @id @default(autoincrement())
   user_id    Int
   book_id    String   @db.VarChar(255)
-  book_title String  @db.VarChar(500)
+  book_title String   @db.VarChar(500)
   book_data  Json?    // Store complete book data from Google Books API
   created_at DateTime @default(now())
 
@@ -37,11 +39,49 @@ model ShelfItem {
   id         Int      @id @default(autoincrement())
   user_id    Int
   book_id    String   @db.VarChar(255)
-  book_title String  @db.VarChar(500)
+  book_title String   @db.VarChar(500)
   book_data  Json?    // Store complete book data from Google Books API
   created_at DateTime @default(now())
 
   user User @relation(fields: [user_id], references: [id], onDelete: Cascade)
 
   @@unique([user_id, book_id])
+}
+
+model Channel {
+  id          String    @id @default(uuid())
+  name        String    @db.VarChar(255)
+  book_id     String    @db.VarChar(255)  // Google Books API ID
+  book_title  String    @db.VarChar(500)
+  book_data   Json?     // Store complete book data
+  created_at  DateTime  @default(now())
+  updated_at  DateTime  @updatedAt
+
+  messages    Message[]
+}
+
+model Message {
+  id         String   @id @default(uuid())
+  content    String
+  createdAt  DateTime @default(now())
+
+  // Relations
+  user       User     @relation(fields: [userId], references: [id])
+  userId     Int      // Changed from String to Int to match User.id
+
+  channel    Channel  @relation(fields: [channelId], references: [id])
+  channelId  String
+}
+
+model Comment {
+  id          String    @id @default(uuid())
+  content     String
+  book_id     String    @db.VarChar(255)  // Google Books API ID
+  book_title  String    @db.VarChar(500)
+  book_data   Json?     // Store complete book data
+  createdAt   DateTime  @default(now())
+
+  // Relations
+  user        User      @relation(fields: [userId], references: [id])
+  userId      Int
 }

@@ -8,21 +8,25 @@ const { PrismaClient } = require("./generated/prisma");
 const usersRoutes = require("./routes/users.js");
 const favoritesRoutes = require("./routes/favorites.js");
 const shelfRoutes = require("./routes/shelf.js");
-
-dotenv.config();
+const channelsRoutes = require("./routes/channels.js");
+const messagesRoutes = require("./routes/messages.js");
+const commentsRoutes = require("./routes/comments.js");
 
 const app = express();
 const prisma = new PrismaClient();
 
 app.use(cors());
 app.use(express.json()); // to parse JSON request bodies
-app.use(morgan("dev")); // optional: logs requests for dev debugging
-
+app.use(morgan("dev")); 
 // Routes
 app.use("/api/users", usersRoutes);
 app.use("/api/favorites", favoritesRoutes);
 app.use("/api/shelf", shelfRoutes);
+app.use("/api/channels", channelsRoutes);
+app.use("/api/messages", messagesRoutes);
+app.use("/api/comments", commentsRoutes);
 
+// Default route
 app.get("/", (req, res) => {
   res.send("Welcome to StoryStack API");
 });
