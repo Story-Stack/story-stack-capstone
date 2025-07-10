@@ -20,6 +20,7 @@ model User {
   shelf_items ShelfItem[]
   messages    Message[]
   comments    Comment[]
+  joined_channels UserChannel[]
 }
 
 model Favorite {
@@ -58,6 +59,19 @@ model Channel {
   updated_at  DateTime  @updatedAt
 
   messages    Message[]
+  members     UserChannel[]
+}
+
+model UserChannel {
+  id         Int      @id @default(autoincrement())
+  user_id    Int
+  channel_id String
+  joined_at  DateTime @default(now())
+
+  user       User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  channel    Channel  @relation(fields: [channel_id], references: [id], onDelete: Cascade)
+
+  @@unique([user_id, channel_id])
 }
 
 model Message {

@@ -135,7 +135,11 @@ function BookModal({ book, onClose, onJoinDiscussion, isJoined }) {
           <strong>Publisher:</strong> {publisher || "N/A"}
         </p>
         <p>
-          <strong>Published:</strong> {publishedDate || "N/A"}
+          <strong>Published:</strong> {publishedDate ? new Date(publishedDate).toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+          }) : "N/A"}
         </p>
 
         <div className="overview">

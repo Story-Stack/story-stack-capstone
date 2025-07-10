@@ -173,14 +173,14 @@ const AuthProvider = ({ children }) => {
 
   const createUserProfile = async (authUser) => {
     try {
-      // Check if user profile already exists in your database
+      // Check if user profile already exists in your database using the correct endpoint
       const response = await fetch(
-        `http://localhost:3000/api/users/${authUser.id}`
+        `http://localhost:3000/api/users/supabase/${authUser.id}`
       );
 
       if (!response.ok) {
         // User doesn't exist, create profile
-        await fetch("http://localhost:3000/api/users", {
+        const createResponse = await fetch("http://localhost:3000/api/users", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -192,9 +192,17 @@ const AuthProvider = ({ children }) => {
             last_name: authUser.user_metadata?.last_name || "",
           }),
         });
+
+        if (!createResponse.ok) {
+          console.error("Failed to create user profile");
+        } else {
+          console.log("User profile created successfully");
+        }
+      } else {
+        console.log("User profile already exists");
       }
     } catch (error) {
-      alert("Error creating user profile:", error);
+      console.error("Error creating user profile:", error);
     }
   };
 
