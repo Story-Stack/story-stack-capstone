@@ -171,9 +171,6 @@ function Dashboard() {
         </div>
       )}
 
-      <button onClick={refreshHotPicks} className="refresh-btn">
-        🔄 Refresh Picks
-      </button>
       <div className="page-layout">
         <aside className="left-sidebar">
           <Sidebar />
@@ -187,8 +184,14 @@ function Dashboard() {
           />
         </main>
 
-        <aside className="right-sidebar">
-          <div className="joined-discussions">
+
+        <div className="right-section">
+          <button onClick={refreshHotPicks} className="refresh-btn">
+            🔄 Refresh Picks
+          </button>
+
+          <aside className="right-sidebar">
+            <div className="joined-discussions">
             <h3>Joined Discussions</h3>
             {joinedDiscussions.length === 0 ? (
               <p>No discussions joined yet</p>
@@ -215,8 +218,9 @@ function Dashboard() {
                 ))}
               </ul>
             )}
-          </div>
-        </aside>
+            </div>
+          </aside>
+        </div>
       </div>
     </div>
   );
