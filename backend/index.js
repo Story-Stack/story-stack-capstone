@@ -17,7 +17,7 @@ const prisma = new PrismaClient();
 
 app.use(cors());
 app.use(express.json()); // to parse JSON request bodies
-app.use(morgan("dev")); 
+app.use(morgan("dev"));
 // Routes
 app.use("/api/users", usersRoutes);
 app.use("/api/favorites", favoritesRoutes);

@@ -11,20 +11,20 @@ router.get("/book/:bookId", async (req, res) => {
 
     const comments = await prisma.comment.findMany({
       where: {
-        book_id: bookId
+        book_id: bookId,
       },
       include: {
         user: {
           select: {
             id: true,
             first_name: true,
-            last_name: true
-          }
-        }
+            last_name: true,
+          },
+        },
       },
       orderBy: {
-        createdAt: 'desc'
-      }
+        createdAt: "desc",
+      },
     });
 
     res.json(comments);
@@ -45,7 +45,7 @@ router.post("/", async (req, res) => {
 
     // Verify user exists
     const user = await prisma.user.findUnique({
-      where: { id: parseInt(userId) }
+      where: { id: parseInt(userId) },
     });
 
     if (!user) {
@@ -59,17 +59,17 @@ router.post("/", async (req, res) => {
         book_id,
         book_title: book_title || "Unknown",
         book_data,
-        userId: parseInt(userId)
+        userId: parseInt(userId),
       },
       include: {
         user: {
           select: {
             id: true,
             first_name: true,
-            last_name: true
-          }
-        }
-      }
+            last_name: true,
+          },
+        },
+      },
     });
 
     res.status(201).json(comment);
@@ -87,7 +87,7 @@ router.delete("/:commentId", async (req, res) => {
 
     // Verify comment exists and belongs to user
     const comment = await prisma.comment.findUnique({
-      where: { id: commentId }
+      where: { id: parseInt(commentId) },
     });
 
     if (!comment) {
@@ -95,11 +95,13 @@ router.delete("/:commentId", async (req, res) => {
     }
 
     if (comment.userId !== parseInt(userId)) {
-      return res.status(403).json({ error: "Not authorized to delete this comment" });
+      return res
+        .status(403)
+        .json({ error: "Not authorized to delete this comment" });
     }
 
     await prisma.comment.delete({
-      where: { id: commentId }
+      where: { id: parseInt(commentId) },
     });
 
     res.json({ message: "Comment deleted successfully" });
