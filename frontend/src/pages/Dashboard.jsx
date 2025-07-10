@@ -5,18 +5,16 @@ import Sidebar from "../components/FavoritesSidebar";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../../utils/supabaseClient";
+import { useAuth } from "../App";
 
 function Dashboard() {
   // books is the list of results received from the Search component
   // setBooks is a function to update the list of results
   const [books, setBooks] = useState([]);
   const [isShowingHotPicks, setIsShowingHotPicks] = useState(true);
-  const [joinedDiscussions, setJoinedDiscussions] = useState(() => {
-    // Load joined discussions from localStorage on component mount
-    const saved = localStorage.getItem('joinedDiscussions');
-    return saved ? JSON.parse(saved) : [];
-  });
+  const [joinedDiscussions, setJoinedDiscussions] = useState([]);
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   // Popular book categories that rotate
   const hotPicksCategories = [
@@ -37,10 +35,25 @@ function Dashboard() {
     loadHotPicks();
   }, []);
 
-  // Save joined discussions to localStorage whenever it changes
+  // Load user-specific joined discussions when user changes
   useEffect(() => {
-    localStorage.setItem('joinedDiscussions', JSON.stringify(joinedDiscussions));
-  }, [joinedDiscussions]);
+    if (user) {
+      const userSpecificKey = `joinedDiscussions_${user.id}`;
+      const saved = localStorage.getItem(userSpecificKey);
+      setJoinedDiscussions(saved ? JSON.parse(saved) : []);
+    } else {
+      // Clear joined discussions if no user
+      setJoinedDiscussions([]);
+    }
+  }, [user]);
+
+  // Save joined discussions to localStorage whenever it changes (user-specific)
+  useEffect(() => {
+    if (user) {
+      const userSpecificKey = `joinedDiscussions_${user.id}`;
+      localStorage.setItem(userSpecificKey, JSON.stringify(joinedDiscussions));
+    }
+  }, [joinedDiscussions, user]);
 
   // Set up rotation interval when showing hot picks
   useEffect(() => {
@@ -65,7 +78,7 @@ function Dashboard() {
       const response = await fetch(
         `https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(
           randomCategory
-        )}&orderBy=relevance&key=${apiKey}&maxResults=30`
+        )}&orderBy=relevance&key=${apiKey}&maxResults=40`
       );
       const data = await response.json();
 
@@ -184,7 +197,6 @@ function Dashboard() {
           />
         </main>
 
-
         <div className="right-section">
           <button onClick={refreshHotPicks} className="refresh-btn">
             🔄 Refresh Picks
@@ -192,32 +204,32 @@ function Dashboard() {
 
           <aside className="right-sidebar">
             <div className="joined-discussions">
-            <h3>Joined Discussions</h3>
-            {joinedDiscussions.length === 0 ? (
-              <p>No discussions joined yet</p>
-            ) : (
-              <ul>
-                {joinedDiscussions.map((discussion) => (
-                  <li
-                    key={discussion.id}
-                    className="discussion-item"
-                    onClick={() => handleNavigateToDiscussion(discussion.id)}
-                    title="Click to open discussion"
-                  >
-                    <span className="discussion-text">
-                      {discussion.displayText}
-                    </span>
-                    <button
-                      className="leave-discussion-btn"
-                      onClick={(e) => handleLeaveDiscussion(discussion.id, e)}
-                      title="Leave discussion"
+              <h3>Joined Discussions</h3>
+              {joinedDiscussions.length === 0 ? (
+                <p>No discussions joined yet</p>
+              ) : (
+                <ul>
+                  {joinedDiscussions.map((discussion) => (
+                    <li
+                      key={discussion.id}
+                      className="discussion-item"
+                      onClick={() => handleNavigateToDiscussion(discussion.id)}
+                      title="Click to open discussion"
                     >
-                      ✕
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            )}
+                      <span className="discussion-text">
+                        {discussion.displayText}
+                      </span>
+                      <button
+                        className="leave-discussion-btn"
+                        onClick={(e) => handleLeaveDiscussion(discussion.id, e)}
+                        title="Leave discussion"
+                      >
+                        ✕
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
             </div>
           </aside>
         </div>
