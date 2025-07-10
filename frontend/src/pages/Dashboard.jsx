@@ -35,25 +35,32 @@ function Dashboard() {
     loadHotPicks();
   }, []);
 
-  // Load user-specific joined discussions when user changes
+  // Load user's joined discussions from database
   useEffect(() => {
     if (user) {
-      const userSpecificKey = `joinedDiscussions_${user.id}`;
-      const saved = localStorage.getItem(userSpecificKey);
-      setJoinedDiscussions(saved ? JSON.parse(saved) : []);
+      loadJoinedDiscussions();
     } else {
-      // Clear joined discussions if no user
       setJoinedDiscussions([]);
     }
   }, [user]);
 
-  // Save joined discussions to localStorage whenever it changes (user-specific)
-  useEffect(() => {
-    if (user) {
-      const userSpecificKey = `joinedDiscussions_${user.id}`;
-      localStorage.setItem(userSpecificKey, JSON.stringify(joinedDiscussions));
+  const loadJoinedDiscussions = async () => {
+    if (!user) return;
+
+    try {
+      const response = await fetch(`http://localhost:3000/api/user-channels/user/${user.id}`);
+      if (response.ok) {
+        const discussions = await response.json();
+        setJoinedDiscussions(discussions);
+      } else {
+        console.error('Failed to load joined discussions');
+        setJoinedDiscussions([]);
+      }
+    } catch (error) {
+      console.error('Error loading joined discussions:', error);
+      setJoinedDiscussions([]);
     }
-  }, [joinedDiscussions, user]);
+  };
 
   // Set up rotation interval when showing hot picks
   useEffect(() => {
@@ -123,36 +130,97 @@ function Dashboard() {
     navigate("/");
   };
 
-  const handleJoinDiscussion = (book) => {
+  const handleJoinDiscussion = async (book) => {
+    if (!user) {
+      alert("Please sign in to join discussions");
+      return;
+    }
+
     const { title, authors } = book.volumeInfo;
-    const discussionItem = {
-      id: book.id,
-      title: title,
-      author: authors ? authors.join(", ") : "Unknown",
-      displayText: `${title} - ${authors ? authors.join(", ") : "Unknown"}`,
-    };
 
     // Check if already joined
     const existingDiscussion = joinedDiscussions.find(
       (item) => item.id === book.id
     );
 
-    if (existingDiscussion) {
-      // Leave discussion - remove from list
-      setJoinedDiscussions((prev) =>
-        prev.filter((item) => item.id !== book.id)
-      );
-    } else {
-      // Join discussion - add to list
-      setJoinedDiscussions((prev) => [...prev, discussionItem]);
+    try {
+      if (existingDiscussion) {
+        // Leave discussion
+        const response = await fetch('http://localhost:3000/api/user-channels/leave', {
+          method: 'DELETE',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            userId: user.id,
+            bookId: book.id
+          }),
+        });
+
+        if (response.ok) {
+          // Remove from local state
+          setJoinedDiscussions((prev) =>
+            prev.filter((item) => item.id !== book.id)
+          );
+        } else {
+          console.error('Failed to leave discussion');
+        }
+      } else {
+        // Join discussion
+        const response = await fetch('http://localhost:3000/api/user-channels/join', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            userId: user.id,
+            bookId: book.id,
+            bookTitle: title,
+            bookData: book
+          }),
+        });
+
+        if (response.ok) {
+          const newDiscussion = await response.json();
+          // Add to local state
+          setJoinedDiscussions((prev) => [...prev, newDiscussion]);
+        } else {
+          console.error('Failed to join discussion');
+        }
+      }
+    } catch (error) {
+      console.error('Error handling discussion:', error);
     }
   };
 
-  const handleLeaveDiscussion = (discussionId, event) => {
+  const handleLeaveDiscussion = async (discussionId, event) => {
     event.stopPropagation(); // Prevent navigation when clicking leave button
-    setJoinedDiscussions((prev) =>
-      prev.filter((item) => item.id !== discussionId)
-    );
+
+    if (!user) return;
+
+    try {
+      const response = await fetch('http://localhost:3000/api/user-channels/leave', {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userId: user.id,
+          bookId: discussionId
+        }),
+      });
+
+      if (response.ok) {
+        // Remove from local state
+        setJoinedDiscussions((prev) =>
+          prev.filter((item) => item.id !== discussionId)
+        );
+      } else {
+        console.error('Failed to leave discussion');
+      }
+    } catch (error) {
+      console.error('Error leaving discussion:', error);
+    }
   };
 
   const handleNavigateToDiscussion = (discussionId) => {

@@ -11,6 +11,7 @@ const shelfRoutes = require("./routes/shelf.js");
 const channelsRoutes = require("./routes/channels.js");
 const messagesRoutes = require("./routes/messages.js");
 const commentsRoutes = require("./routes/comments.js");
+const userChannelsRoutes = require("./routes/user-channels.js");
 
 const app = express();
 const prisma = new PrismaClient();
@@ -25,6 +26,7 @@ app.use("/api/shelf", shelfRoutes);
 app.use("/api/channels", channelsRoutes);
 app.use("/api/messages", messagesRoutes);
 app.use("/api/comments", commentsRoutes);
+app.use("/api/user-channels", userChannelsRoutes);
 
 // Default route
 app.get("/", (req, res) => {
