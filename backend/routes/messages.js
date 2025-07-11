@@ -36,6 +36,7 @@ router.get('/channel/:channelId', async (req, res) => {
       sender: msg.user.first_name || msg.user.email.split('@')[0] || 'Anonymous',
       created_at: msg.createdAt,
       userId: msg.userId,
+      
       supabase_id: msg.user.supabase_id // Include Supabase ID for frontend comparison
     }));
 

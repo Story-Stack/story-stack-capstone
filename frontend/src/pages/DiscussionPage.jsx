@@ -210,6 +210,7 @@ export default function DiscussionPage() {
                 {!isCurrentUser && (
                   <div className="sender-name">{msg.sender}</div>
                 )}
+                
                 <div className="message-content">{msg.content}</div>
                 <div className="message-time">
                   {new Date(msg.created_at || msg.timestamp).toLocaleTimeString([], {
