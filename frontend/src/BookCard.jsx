@@ -43,9 +43,8 @@ function BookCard({
         <img src={image} alt={title} />
 
         <div className="book-card-content">
-          <p className="title">{title}</p>
-
-          <p className="author">{(authors || ["Unknown author"]).join(", ")}</p>
+            <p className="title">{title}</p>
+            <p className="author">{(authors || ["Unknown author"]).join(", ")}</p>
 
           <div className="card-actions">
             <button

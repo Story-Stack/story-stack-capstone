@@ -57,7 +57,6 @@
   margin: 0 20px 20px 20px;
 }
 
-.previous-btn,
 .logout-btn {
   background-color: #007bff;
   color: white;
@@ -72,13 +71,23 @@
 }
 
 .previous-btn {
-  background-color: #6c757d;
+  background-color: #dc3545 !important;
+  color: white !important;
+  border: 2px solid #c82333 !important;
+  border-radius: 5px !important;
+  padding: 0.5rem 1rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  min-width: 80px;
+  box-shadow: 0 2px 8px rgba(220, 53, 69, 0.3) !important;
 }
 
 .previous-btn:hover {
   background-color: #5a6268;
-  transform: translateY(-1px);
-  box-shadow: 0 2px 8px rgba(108, 117, 125, 0.3);
+  border-color: #343a40;
+  box-shadow: 0 4px 12px rgba(108, 117, 125, 0.4);
 }
 
 .logout-btn:hover {
