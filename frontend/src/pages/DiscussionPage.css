@@ -12,7 +12,7 @@
   display: flex;
   align-items: center;
   padding: 15px 20px;
-  background-color: #075e54;
+  background-color: #1E90FF;
   color: white;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
@@ -33,10 +33,24 @@
   background-color: rgba(255, 255, 255, 0.1);
 }
 
+.header-content {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
 .chat-title {
   font-size: 18px;
   font-weight: 600;
   margin: 0;
+}
+
+.book-info {
+  font-size: 14px;
+  font-weight: 400;
+  margin: 0;
+  opacity: 0.9;
+  color: #e8f5e8;
 }
 
 .messages-container {
@@ -72,7 +86,7 @@
 }
 
 .sent-bubble {
-  background-color: #dcf8c6;
+  background-color: #1E90FF;
   border-bottom-right-radius: 4px;
   margin-left: auto;
 }

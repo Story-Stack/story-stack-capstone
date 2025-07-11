@@ -17,6 +17,8 @@ function BookModal({ book, onClose, onJoinDiscussion, isJoined }) {
     previewLink,
     publisher,
     publishedDate,
+    pageCount,
+    averageRating,
   } = book.volumeInfo;
 
   useEffect(() => {
@@ -133,6 +135,12 @@ function BookModal({ book, onClose, onJoinDiscussion, isJoined }) {
         </p>
         <p>
           <strong>Publisher:</strong> {publisher || "N/A"}
+        </p>
+         <p>
+          <strong>Page Count:</strong> {pageCount || "N/A"}
+        </p>
+         <p>
+          <strong>Average Rating:</strong> {averageRating ? `${averageRating}/5` : "N/A"}
         </p>
         <p>
           <strong>Published:</strong> {publishedDate ? new Date(publishedDate).toLocaleDateString('en-US', {
