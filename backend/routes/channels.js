@@ -15,6 +15,7 @@ router.get('/book/:bookId', async (req, res) => {
       }
     });
 
+    
     if (!channel) {
       return res.status(404).json({ error: 'Channel not found' });
     }
