@@ -20,5 +20,5 @@ export function calculateScores({ favorites = [], shelfItems = [], comments = []
     // Add 2 points for each channel joined
     channels.forEach(channel => addPoints(channel.category, 2));
 
-    return calculateScores;
+    return categoryScores;
 }
