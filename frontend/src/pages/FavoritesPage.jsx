@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useAuth } from "../App";
 import BookCard from "../BookCard";
 import { useNavigate } from "react-router-dom";
-
+import Sidebar from "../components/FavoritesSidebar";
 import "./FavoritesPage.css";
 
 function FavoritesPage() {
@@ -165,11 +165,14 @@ function FavoritesPage() {
   if (!user) {
     return (
       <div className="favorites-page">
-        <div className="favorites-header">
-          <h1>My Favorites</h1>
-        </div>
-        <div className="no-user-message">
-          <p>Please sign in to view your favorites</p>
+        <Sidebar />
+        <div className="favorites-content">
+          <div className="favorites-header">
+            <h1>My Favorites</h1>
+          </div>
+          <div className="no-user-message">
+            <p>Please sign in to view your favorites</p>
+          </div>
         </div>
       </div>
     );
@@ -178,11 +181,14 @@ function FavoritesPage() {
   if (loading) {
     return (
       <div className="favorites-page">
-        <div className="favorites-header">
-          <h1>My Favorites</h1>
-        </div>
-        <div className="loading-message">
-          <p>Loading your favorites...</p>
+        <Sidebar />
+        <div className="favorites-content">
+          <div className="favorites-header">
+            <h1>My Favorites</h1>
+          </div>
+          <div className="loading-message">
+            <p>Loading your favorites...</p>
+          </div>
         </div>
       </div>
     );
@@ -190,61 +196,66 @@ function FavoritesPage() {
 
   return (
     <div className="favorites-page">
-      <button onClick={() => navigate("/dashboard")}>❮ Previous</button>
+      <Sidebar />
+      <div className="favorites-content">
+        <button onClick={() => navigate("/dashboard")}>❮ Previous</button>
 
-      <div className="favorites-header">
-        <h1>My Favorites ({favorites.length})</h1>
-        <p>Books you've added to your favorites collection</p>
+        <div className="favorites-header">
+          <h1>My Favorites ({favorites.length})</h1>
+          <p>Books you've added to your favorites collection</p>
+        </div>
+
+        {favorites.length === 0 ? (
+          <div className="no-favorites-message">
+            <h2>No favorites yet!</h2>
+            <p>
+              Start exploring books and add them to your favorites by clicking
+              the heart icon.
+            </p>
+            <a href="/dashboard" className="browse-books-btn">
+              Browse Books
+            </a>
+          </div>
+        ) : (
+          <div className="favorites-grid">
+            {favorites.map((favorite) => {
+              // Convert the stored favorite back to the book format expected by BookCard
+              const book = {
+                id: favorite.book_id,
+                volumeInfo: {
+                  title: favorite.book_title,
+                  authors: favorite.book_data?.volumeInfo?.authors || [
+                    "Unknown Author",
+                  ],
+                  imageLinks: favorite.book_data?.volumeInfo?.imageLinks || {},
+                  description:
+                    favorite.book_data?.volumeInfo?.description || "",
+                  publishedDate:
+                    favorite.book_data?.volumeInfo?.publishedDate || "",
+                  publisher: favorite.book_data?.volumeInfo?.publisher || "",
+                  pageCount: favorite.book_data?.volumeInfo?.pageCount || 0,
+                  categories: favorite.book_data?.volumeInfo?.categories || [],
+                  averageRating:
+                    favorite.book_data?.volumeInfo?.averageRating || 0,
+                  ratingsCount:
+                    favorite.book_data?.volumeInfo?.ratingsCount || 0,
+                },
+              };
+
+              return (
+                <BookCard
+                  key={favorite.book_id}
+                  book={book}
+                  isFavorite={true}
+                  toShelf={shelfItems.has(book.id)}
+                  onToggleFavorite={() => handleRemoveFromFavorites(book)}
+                  onToggleToShelf={() => handleToggleToShelf(book)}
+                />
+              );
+            })}
+          </div>
+        )}
       </div>
-
-      {favorites.length === 0 ? (
-        <div className="no-favorites-message">
-          <h2>No favorites yet!</h2>
-          <p>
-            Start exploring books and add them to your favorites by clicking the
-            heart icon.
-          </p>
-          <a href="/dashboard" className="browse-books-btn">
-            Browse Books
-          </a>
-        </div>
-      ) : (
-        <div className="favorites-grid">
-          {favorites.map((favorite) => {
-            // Convert the stored favorite back to the book format expected by BookCard
-            const book = {
-              id: favorite.book_id,
-              volumeInfo: {
-                title: favorite.book_title,
-                authors: favorite.book_data?.volumeInfo?.authors || [
-                  "Unknown Author",
-                ],
-                imageLinks: favorite.book_data?.volumeInfo?.imageLinks || {},
-                description: favorite.book_data?.volumeInfo?.description || "",
-                publishedDate:
-                  favorite.book_data?.volumeInfo?.publishedDate || "",
-                publisher: favorite.book_data?.volumeInfo?.publisher || "",
-                pageCount: favorite.book_data?.volumeInfo?.pageCount || 0,
-                categories: favorite.book_data?.volumeInfo?.categories || [],
-                averageRating:
-                  favorite.book_data?.volumeInfo?.averageRating || 0,
-                ratingsCount: favorite.book_data?.volumeInfo?.ratingsCount || 0,
-              },
-            };
-
-            return (
-              <BookCard
-                key={favorite.book_id}
-                book={book}
-                isFavorite={true}
-                toShelf={shelfItems.has(book.id)}
-                onToggleFavorite={() => handleRemoveFromFavorites(book)}
-                onToggleToShelf={() => handleToggleToShelf(book)}
-              />
-            );
-          })}
-        </div>
-      )}
     </div>
   );
 }

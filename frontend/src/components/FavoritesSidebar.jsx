@@ -6,6 +6,7 @@ import "./FavoritesSidebar.css";
 function Sidebar() {
   const [favoritesCount, setFavoritesCount] = useState(0);
   const [shelfCount, setShelfCount] = useState(0);
+  const [recommendationsCount, setRecommendationsCount] = useState(0);
   const { user } = useAuth();
   const navigate = useNavigate();
 
@@ -13,9 +14,11 @@ function Sidebar() {
     if (user) {
       loadFavoritesCount();
       loadShelfCount();
+      loadRecommendationsCount();
     } else {
       setFavoritesCount(0);
       setShelfCount(0);
+      setRecommendationsCount(0);
     }
   }, [user]);
 
@@ -59,6 +62,26 @@ function Sidebar() {
     }
   };
 
+  const loadRecommendationsCount = async () => {
+    if (!user) return;
+
+    try {
+      const response = await fetch(
+        `http://localhost:3000/api/recommendations/${user.id}`
+      );
+
+      if (response.ok) {
+        const recommendationsData = await response.json();
+        setRecommendationsCount(recommendationsData.length);
+      } else {
+        setRecommendationsCount(0);
+      }
+    } catch (error) {
+      console.error("Error loading recommendations count:", error);
+      setRecommendationsCount(0);
+    }
+  };
+
   const handleFavoritesClick = () => {
     if (!user) {
       alert("Please sign in to view favorites");
@@ -73,6 +96,14 @@ function Sidebar() {
       return;
     }
     navigate("/shelf");
+  };
+
+  const handleRecommendationsClick = () => {
+    if (!user) {
+      alert("Please sign in to view recommendations");
+      return;
+    }
+    navigate("/recommendations");
   };
 
   return (
@@ -90,6 +121,14 @@ function Sidebar() {
           <span className="tab-icon">📚</span>
           <span className="tab-text">My Shelf</span>
           {shelfCount > 0 && <span className="tab-count">{shelfCount}</span>}
+        </button>
+
+        <button className="sidebar-tab" onClick={handleRecommendationsClick}>
+          <span className="tab-icon">🎯</span>
+          <span className="tab-text">My Recommendations</span>
+          {recommendationsCount > 0 && (
+            <span className="tab-count">{recommendationsCount}</span>
+          )}
         </button>
       </nav>
     </div>

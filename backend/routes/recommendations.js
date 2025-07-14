@@ -3,19 +3,38 @@ const { PrismaClient } = require('../generated/prisma');
 
 const router = express.Router();
 const prisma = new PrismaClient();
+const numTopCategories = 3; // Number of top categories to return
+const recommendationsLimit = 20; // Number of recommendations to return
 
 // Get personalized recommendations for a user
 router.get('/:userId', async (req, res) => {
   try {
     const { userId } = req.params;
-    const limit = parseInt(req.query.limit) || 20;
-    const userIdInt = parseInt(userId);
+    const limit = parseInt(req.query.limit) || recommendationsLimit;
+
+    // Check if userId is a supabase_id (UUID) or database user ID (integer)
+    let userIdInt;
+    if (userId.includes('-')) {
+      // It's a supabase_id, get the database user ID
+      const user = await prisma.user.findUnique({
+        where: { supabase_id: userId }
+      });
+
+      if (!user) {
+        return res.status(404).json({ error: 'User not found' });
+      }
+
+      userIdInt = user.id;
+    } else {
+      // It's already a database user ID
+      userIdInt = parseInt(userId);
+    }
 
     // Get user's top categories
     const topCategories = await prisma.userCategoryScore.findMany({
       where: { user_id: userIdInt },
       orderBy: { score: 'desc' },
-      take: 3 // Top 3 categories
+      take: numTopCategories // Top 3 categories
     });
 
     if (topCategories.length === 0) {

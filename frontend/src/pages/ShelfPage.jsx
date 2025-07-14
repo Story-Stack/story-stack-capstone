@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "../App";
 import BookCard from "../BookCard";
+import Sidebar from "../components/FavoritesSidebar";
 import "./ShelfPage.css";
 import { useNavigate } from "react-router-dom";
 
@@ -164,11 +165,14 @@ function ShelfPage() {
   if (!user) {
     return (
       <div className="shelf-page">
-        <div className="shelf-header">
-          <h1>My Shelf</h1>
-        </div>
-        <div className="no-user-message">
-          <p>Please sign in to view your shelf</p>
+        <Sidebar />
+        <div className="shelf-content">
+          <div className="shelf-header">
+            <h1>My Shelf</h1>
+          </div>
+          <div className="no-user-message">
+            <p>Please sign in to view your shelf</p>
+          </div>
         </div>
       </div>
     );
@@ -177,11 +181,14 @@ function ShelfPage() {
   if (loading) {
     return (
       <div className="shelf-page">
-        <div className="shelf-header">
-          <h1>My Shelf</h1>
-        </div>
-        <div className="loading-message">
-          <p>Loading your Shelf...</p>
+        <Sidebar />
+        <div className="shelf-content">
+          <div className="shelf-header">
+            <h1>My Shelf</h1>
+          </div>
+          <div className="loading-message">
+            <p>Loading your Shelf...</p>
+          </div>
         </div>
       </div>
     );
@@ -189,61 +196,65 @@ function ShelfPage() {
 
   return (
     <div className="shelf-page">
-      <button onClick={() => navigate("/dashboard")}>❮ Previous</button>
-      <div className="shelf-header">
-        <h1>My Shelf ({shelf.length})</h1>
-        <p>Books you've added to your shelf collection</p>
+      <Sidebar />
+      <div className="shelf-content">
+        <button onClick={() => navigate("/dashboard")}>❮ Previous</button>
+        <div className="shelf-header">
+          <h1>My Shelf ({shelf.length})</h1>
+          <p>Books you've added to your shelf collection</p>
+        </div>
+
+        {shelf.length === 0 ? (
+          <div className="no-books-message">
+            <h2>No books added to shelf yet!</h2>
+            <p>
+              Start exploring books and add them to your shelf by clicking the
+              shelf icon.
+            </p>
+            <a href="/dashboard" className="browse-books-btn">
+              Browse Books
+            </a>
+          </div>
+        ) : (
+          <div className="shelf-grid">
+            {shelf.map((shelfItem) => {
+              // Convert the stored shelf item back to the book format expected by BookCard
+              const book = {
+                id: shelfItem.book_id,
+                volumeInfo: {
+                  title: shelfItem.book_title,
+                  authors: shelfItem.book_data?.volumeInfo?.authors || [
+                    "Unknown Author",
+                  ],
+                  imageLinks: shelfItem.book_data?.volumeInfo?.imageLinks || {},
+                  description:
+                    shelfItem.book_data?.volumeInfo?.description || "",
+                  publishedDate:
+                    shelfItem.book_data?.volumeInfo?.publishedDate || "",
+                  publisher: shelfItem.book_data?.volumeInfo?.publisher || "",
+                  pageCount: shelfItem.book_data?.volumeInfo?.pageCount || 0,
+                  categories: shelfItem.book_data?.volumeInfo?.categories || [],
+                  averageRating:
+                    shelfItem.book_data?.volumeInfo?.averageRating || 0,
+                  ratingsCount:
+                    shelfItem.book_data?.volumeInfo?.ratingsCount || 0,
+                },
+              };
+
+              return (
+                <BookCard
+                  key={shelfItem.book_id}
+                  book={book}
+                  isFavorite={favoriteItems.has(book.id)}
+                  toShelf={true} // Always true since this is the shelf page
+                  onToggleFavorite={() => handleToggleToFavorites(book)}
+                  onToggleToShelf={() => handleRemoveFromShelf(book)}
+                />
+              );
+            })}
+          </div>
+        )}
       </div>
-
-      {shelf.length === 0 ? (
-        <div className="no-books-message">
-          <h2>No books added to shelf yet!</h2>
-          <p>
-            Start exploring books and add them to your shelf by clicking the
-            shelf icon.
-          </p>
-          <a href="/dashboard" className="browse-books-btn">
-            Browse Books
-          </a>
-        </div>
-      ) : (
-        <div className="shelf-grid">
-          {shelf.map((shelfItem) => {
-            // Convert the stored shelf item back to the book format expected by BookCard
-            const book = {
-              id: shelfItem.book_id,
-              volumeInfo: {
-                title: shelfItem.book_title,
-                authors: shelfItem.book_data?.volumeInfo?.authors || [
-                  "Unknown Author",
-                ],
-                imageLinks: shelfItem.book_data?.volumeInfo?.imageLinks || {},
-                description: shelfItem.book_data?.volumeInfo?.description || "",
-                publishedDate:
-                  shelfItem.book_data?.volumeInfo?.publishedDate || "",
-                publisher: shelfItem.book_data?.volumeInfo?.publisher || "",
-                pageCount: shelfItem.book_data?.volumeInfo?.pageCount || 0,
-                categories: shelfItem.book_data?.volumeInfo?.categories || [],
-                averageRating:
-                  shelfItem.book_data?.volumeInfo?.averageRating || 0,
-                ratingsCount:
-                  shelfItem.book_data?.volumeInfo?.ratingsCount || 0,
-              },
-            };
-
-            return (
-              <BookCard
-                key={shelfItem.book_id}
-                book={book}
-                isFavorite={favoriteItems.has(book.id)}
-                toShelf={true} // Always true since this is the shelf page
-                onToggleFavorite={() => handleToggleToFavorites(book)}
-                onToggleToShelf={() => handleRemoveFromShelf(book)}
-              />
-            );
-          })}
-        </div>
-      )}
     </div>
   );
 }
