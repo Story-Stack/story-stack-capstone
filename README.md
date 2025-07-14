@@ -12,5 +12,12 @@
 -  Save favorite books to a personal shelf
 -  Join channels related to specific books for discussion
 -  Login with Google via Supabase Authentication
--  Mobile-responsive UI
+-  Personalized recommendations based on user interactions (e.g. favorited, shelved, channels joined)
+-  Receive notifications for new messages, replies to a comment, new recommendations
+-  Real-time messaging in channels using WebSockets (Socket.IO + Supabase integration)
+-  Comment on a book to share thoughts or reviews outside of real-time chat
+-  Recommendation algorithm with scoring logic and category balancing
+-  Notification system 
+
+
 
