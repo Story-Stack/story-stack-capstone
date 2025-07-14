@@ -3,7 +3,7 @@ const getBookCategories = (book) => {
     // Handle different data sources
     if (book.category) return book.category; // From database
     if (book.volumeInfo?.categories) return book.volumeInfo.categories; // From Google API
-    if (book.categories) return book.categories; 
+    if (book.categories) return book.categories;
     if (book.book_data?.volumeInfo?.categories) return book.book_data.volumeInfo.categories; // From stored book_data
     return [];
 };
@@ -174,11 +174,16 @@ export async function getRecommendations(userId, limit = 20) {
         }
 
         // Shuffle and limit results
-        const shuffledRecommendations = recommendations
-            .sort(() => Math.random() - 0.5)
-            .slice(0, limit);
-
-        return shuffledRecommendations;
+        function shuffle(array) {
+            const arr = [...array];
+            for (let i = arr.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [arr[i], arr[j]] = [arr[j], arr[i]];
+            }
+            return arr;
+        }
+         const shuffledRecommendations = shuffle(recommendations);
+         return shuffledRecommendations;
     } catch (error) {
         console.error('Error getting recommendations:', error);
         return [];
