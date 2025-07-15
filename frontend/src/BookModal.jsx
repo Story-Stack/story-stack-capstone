@@ -19,6 +19,7 @@ function BookModal({ book, onClose, onJoinDiscussion, isJoined }) {
     publishedDate,
     pageCount,
     averageRating,
+    categories,
   } = book.volumeInfo;
 
   useEffect(() => {
@@ -150,6 +151,10 @@ function BookModal({ book, onClose, onJoinDiscussion, isJoined }) {
           }) : "N/A"}
         </p>
 
+         <p>
+          <strong>{categories.length > 1 ? "Categories:" : "Category:"}</strong>
+            {categories.length > 0 ? ` ${categories.join(", ")}` : " N/A"}
+        </p>
         <div className="overview">
           <p>
             {description || "No description available."}

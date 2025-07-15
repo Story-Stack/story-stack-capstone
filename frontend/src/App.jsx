@@ -14,6 +14,7 @@ import HomePage from "./pages/HomePage";
 import Dashboard from "./pages/Dashboard";
 import FavoritesPage from "./pages/FavoritesPage";
 import ShelfPage from "./pages/ShelfPage";
+import RecommendationsPage from "./pages/RecommendationsPage";
 import DiscussionPage from "./pages/DiscussionPage";
 import SignIn from "./pages/authentication-pages/SignIn";
 import Register from "./pages/authentication-pages/Register";
@@ -356,6 +357,14 @@ function App() {
                   element={
                     <ProtectedRoute>
                       <ShelfPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/recommendations"
+                  element={
+                    <ProtectedRoute>
+                      <RecommendationsPage />
                     </ProtectedRoute>
                   }
                 />
