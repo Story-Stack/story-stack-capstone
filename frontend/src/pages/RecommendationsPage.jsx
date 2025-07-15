@@ -127,7 +127,7 @@ function RecommendationsPage() {
     <div className="recommendations-page">
       <Sidebar />
       <div className="recommendations-content">
-        <h1>Recommended Books</h1>
+        <h1>Recommended Books For You!</h1>
         {recommendations.length === 0 ? (
           <div className="no-recommendations">
             <p>No recommendations available yet.</p>

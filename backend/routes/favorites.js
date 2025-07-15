@@ -68,6 +68,23 @@ router.post("/", async (req, res) => {
       },
     });
 
+    // Trigger score recalculation in the background
+    try {
+      const response = await fetch(
+        `http://localhost:3000/api/category-scores/recalculate/${user.id}`,
+        {
+          method: "POST",
+        }
+      );
+      if (!response.ok) {
+        console.warn(
+          "Failed to recalculate category scores after adding favorite"
+        );
+      }
+    } catch (scoreError) {
+      console.warn("Error recalculating category scores:", scoreError);
+    }
+
     res.status(201).json(favorite);
   } catch (error) {
     console.error("Error adding to favorites:", error);
@@ -96,6 +113,23 @@ router.delete("/", async (req, res) => {
         book_id: book_id,
       },
     });
+
+    // Trigger score recalculation in the background
+    try {
+      const response = await fetch(
+        `http://localhost:3000/api/category-scores/recalculate/${user.id}`,
+        {
+          method: "POST",
+        }
+      );
+      if (!response.ok) {
+        console.warn(
+          "Failed to recalculate category scores after removing favorite"
+        );
+      }
+    } catch (scoreError) {
+      console.warn("Error recalculating category scores:", scoreError);
+    }
 
     res.json({ message: "Removed from favorites" });
   } catch (error) {

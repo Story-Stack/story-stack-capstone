@@ -7,7 +7,8 @@
 .recommendations-content {
   flex: 1;
   padding: 2rem;
-  margin-left: 250px; /* Account for sidebar width */
+  margin-left: 50px; /* Account for sidebar width */
+  margin-right: 50px;
 }
 
 .recommendations-content h1 {
