@@ -4,7 +4,6 @@ const { PrismaClient } = require("../generated/prisma");
 const router = express.Router();
 const prisma = new PrismaClient();
 const numTopCategories = 3; // Number of top categories to return
-const recommendationsLimit = 20; // Number of recommendations to return
 
 // Get personalized recommendations for a user
 router.get('/:userId', async (req, res) => {

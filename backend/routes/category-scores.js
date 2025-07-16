@@ -4,10 +4,12 @@ const { PrismaClient } = require("../generated/prisma");
 const router = express.Router();
 const prisma = new PrismaClient();
 
-const favoriteScore = 5
-const shelfScore = 4
-const joinchannelScore = 3
-const commentScore = 2
+const scoreWeights = {
+  favorite: 5,
+  shelf: 4,
+  joinChannel: 3,
+  comment: 2,
+};
 
 // Update category scores for a user
 router.post("/update", async (req, res) => {
@@ -133,22 +135,29 @@ router.post("/recalculate/:userId", async (req, res) => {
     };
 
     // Add points for favorites (5 points each)
-    favorites.forEach((book) => addPoints(getBookCategories(book), favoriteScore));
+    favorites.forEach((book) =>
+      addPoints(getBookCategories(book), scoreWeights.favorite)
+    );
 
     // Add points for shelf items (4 points each)
-    shelfItems.forEach((book) => addPoints(getBookCategories(book), shelfScore));
+    shelfItems.forEach((book) =>
+      addPoints(getBookCategories(book), scoreWeights.shelf)
+    );
 
     // Add points for comments (2 points each)
     comments.forEach((comment) => {
       const bookData = comment.book_data || {};
-      addPoints(getBookCategories(bookData), commentScore);
+      addPoints(getBookCategories(bookData), scoreWeights.comment);
     });
 
     // Add points for channels (3 points each)
     channels.forEach((userChannel) => {
       const channel = userChannel.channel;
       if (channel.book_data?.volumeInfo?.categories) {
-        addPoints(channel.book_data.volumeInfo.categories, joinchannelScore);
+        addPoints(
+          channel.book_data.volumeInfo.categories,
+          scoreWeights.joinChannel
+        );
       }
     });
 
@@ -183,3 +192,4 @@ router.post("/recalculate/:userId", async (req, res) => {
 });
 
 module.exports = router;
+module.exports.scoreWeights = scoreWeights;

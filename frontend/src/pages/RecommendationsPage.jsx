@@ -3,6 +3,8 @@ import { useAuth } from "../App";
 import BookCard from "../BookCard";
 import Sidebar from "../components/FavoritesSidebar";
 import "./RecommendationsPage.css";
+const recommendationsLimit = 20; // Number of recommendations to return
+
 
 function RecommendationsPage() {
   const [recommendations, setRecommendations] = useState([]);
@@ -80,7 +82,7 @@ function RecommendationsPage() {
           (book, index, self) =>
             index === self.findIndex((b) => b.id === book.id)
         )
-        .slice(0, 20);
+        .slice(0, recommendationsLimit);
 
       return uniqueBooks;
     } catch (error) {
