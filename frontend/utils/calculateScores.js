@@ -1,9 +1,5 @@
-import { join } from "../../backend/generated/prisma/runtime/library";
 
-const favoriteScore = 5
-const shelfScore = 4
-const joinchannelScore = 3
-const commentScore = 2
+import scoreWeights from '../../backend/routes/category-scores.js'
 
 // Helper function to extract categories from book data
 const getBookCategories = (book) => {
@@ -78,13 +74,13 @@ export function calculateScores({
         });
     };
 
-    // Add 3 points for each favorited book
-    favorites.forEach(book => addPoints(getBookCategories(book), favoriteScore));
+    // Add 5 points for each favorited book
+    favorites.forEach(book => addPoints(getBookCategories(book), scoreWeights.favorite));
 
-    // Add 1.5 points for each book in the shelf
-    shelfItems.forEach(book => addPoints(getBookCategories(book), shelfScore));
+    // Add 4 points for each book in the shelf
+    shelfItems.forEach(book => addPoints(getBookCategories(book), scoreWeights.shelf));
 
-    // Add 1 point for each book a user has made a comment on
+    // Add 3 point for each book a user has made a comment on
     comments.forEach(comment => {
         // Comments store book data, extract categories from it
         const bookData = comment.book_data || {};
@@ -92,7 +88,7 @@ export function calculateScores({
     });
 
     // Add 2 points for each channel joined (based on the book the channel discusses)
-    channels.forEach(channel => addPoints(getChannelCategories(channel), joinchannelScore));
+    channels.forEach(channel => addPoints(getChannelCategories(channel), scoreWeights.channel));
 
     return categoryScores;
 }
