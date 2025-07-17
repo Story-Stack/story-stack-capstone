@@ -73,16 +73,17 @@ const Navigation = () => {
       );
     }
 
-    // Dashboard should have none of these navigation links
     if (currentPath === "/dashboard") {
-      return user ? (
+      return (
         <>
           <a href="/">Home</a> &nbsp;
-          <span className="user-greeting">
-            Welcome, {user.email.split("@")[0]}!
-          </span>
+          {user && (
+            <span className="user-greeting">
+              Welcome, {user.email.split("@")[0]}!
+            </span>
+          )}
         </>
-      ) : null;
+      );
     }
 
     // Sign In page should have only Home and Register links
