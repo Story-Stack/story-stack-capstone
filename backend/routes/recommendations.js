@@ -6,7 +6,7 @@ const prisma = new PrismaClient();
 const numTopCategories = 3; // Number of top categories to return
 
 // Get personalized recommendations for a user
-router.get('/:userId', async (req, res) => {
+router.get("/:userId", async (req, res) => {
   try {
     const { userId } = req.params;
 

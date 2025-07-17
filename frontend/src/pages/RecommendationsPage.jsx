@@ -5,7 +5,6 @@ import Sidebar from "../components/FavoritesSidebar";
 import "./RecommendationsPage.css";
 const recommendationsLimit = 20; // Number of recommendations to return
 
-
 function RecommendationsPage() {
   const [recommendations, setRecommendations] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -25,9 +24,7 @@ function RecommendationsPage() {
       setLoading(true);
       setError(null);
 
-      const response = await fetch(
-        `http://localhost:3000/api/recommendations/${user.id}`
-      );
+      const response = await fetch(`/api/recommendations/${user.id}`);
 
       if (response.ok) {
         const data = await response.json();
