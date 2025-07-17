@@ -182,13 +182,11 @@ const AuthProvider = ({ children }) => {
   const createUserProfile = async (authUser) => {
     try {
       // Check if user profile already exists in your database using the correct endpoint
-      const response = await fetch(
-        `http://localhost:3000/api/users/supabase/${authUser.id}`
-      );
+      const response = await fetch(`/api/users/supabase/${authUser.id}`);
 
       if (!response.ok) {
         // User doesn't exist, create profile
-        const createResponse = await fetch("http://localhost:3000/api/users", {
+        const createResponse = await fetch("/api/users", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -246,9 +244,9 @@ const FavoritesProvider = ({ children }) => {
       const {
         data: { session },
       } = await supabase.auth.getSession();
-      if (!session) return;
+      if (!session || !user) return;
 
-      const response = await fetch("/api/favorites", {
+      const response = await fetch(`/api/favorites/${user.id}`, {
         headers: {
           Authorization: `Bearer ${session.access_token}`,
         },
@@ -257,6 +255,8 @@ const FavoritesProvider = ({ children }) => {
       if (response.ok) {
         const data = await response.json();
         setFavorites(data);
+      } else {
+        console.error("Failed to load favorites:", response.status);
       }
     } catch (error) {
       console.error("Failed to load favorites:", error);

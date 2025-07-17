@@ -26,9 +26,7 @@ function Sidebar() {
     if (!user) return;
 
     try {
-      const response = await fetch(
-        `http://localhost:3000/api/favorites/${user.id}`
-      );
+      const response = await fetch(`/api/favorites/${user.id}`);
 
       if (response.ok) {
         const favoritesData = await response.json();
@@ -46,9 +44,7 @@ function Sidebar() {
     if (!user) return;
 
     try {
-      const response = await fetch(
-        `http://localhost:3000/api/shelf/${user.id}`
-      );
+      const response = await fetch(`/api/shelf/${user.id}`);
 
       if (response.ok) {
         const shelfData = await response.json();
@@ -66,13 +62,16 @@ function Sidebar() {
     if (!user) return;
 
     try {
-      const response = await fetch(
-        `http://localhost:3000/api/recommendations/${user.id}`
-      );
+      const response = await fetch(`/api/recommendations/${user.id}`);
 
       if (response.ok) {
         const recommendationsData = await response.json();
-        setRecommendationsCount(recommendationsData.length);
+        // Check if topCategories exists and use its length
+        if (recommendationsData.topCategories) {
+          setRecommendationsCount(recommendationsData.topCategories.length);
+        } else {
+          setRecommendationsCount(0);
+        }
       } else {
         setRecommendationsCount(0);
       }
@@ -126,9 +125,9 @@ function Sidebar() {
         <button className="sidebar-tab" onClick={handleRecommendationsClick}>
           <span className="tab-icon">🎯</span>
           <span className="tab-text">My Recommendations</span>
-          {recommendationsCount > 0 && (
+          {/* {recommendationsCount > 0 && (
             <span className="tab-count">{recommendationsCount}</span>
-          )}
+          )} */}
         </button>
       </nav>
     </div>
