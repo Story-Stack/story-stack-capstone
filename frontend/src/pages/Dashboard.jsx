@@ -256,13 +256,13 @@ function Dashboard() {
         ) : (
           <div
             style={{ width: "80px" }}
-          ></div> 
+          ></div>
         )}
       </div>
 
       <Search onResults={handleResults} />
 
-      {/* Hot Picks Header */}
+      {/* Popular Picks Header */}
       {isShowingHotPicks && (
         <div className="hot-picks-header">
           <h2>Popular Picks</h2>

@@ -14,6 +14,7 @@ const commentsRoutes = require("./routes/comments.js");
 const userChannelsRoutes = require("./routes/user-channels.js");
 const categoryScoresRoutes = require("./routes/category-scores.js");
 const recommendationsRoutes = require("./routes/recommendations.js");
+const notificationsRoutes = require("./routes/notifications.js");
 
 const app = express();
 const prisma = new PrismaClient();
@@ -31,6 +32,7 @@ app.use("/api/comments", commentsRoutes);
 app.use("/api/user-channels", userChannelsRoutes);
 app.use("/api/category-scores", categoryScoresRoutes);
 app.use("/api/recommendations", recommendationsRoutes);
+app.use("/api/notifications", notificationsRoutes);
 
 // Default route
 app.get("/", (req, res) => {
