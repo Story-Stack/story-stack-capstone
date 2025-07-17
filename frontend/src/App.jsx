@@ -9,6 +9,9 @@ import { useState, useEffect, createContext, useContext } from "react";
 import { supabase } from "../utils/supabaseClient";
 import "./App.css";
 
+// Import components
+import NotificationBell from "./components/NotificationBell";
+
 // Import pages
 import HomePage from "./pages/HomePage";
 import Dashboard from "./pages/Dashboard";
@@ -132,7 +135,10 @@ const Navigation = () => {
   return (
     <nav className="app-navigation">
       <div className="nav-brand"></div>
-      <div className="nav-links">{renderNavigationLinks()}</div>
+      <div className="nav-links">
+        {renderNavigationLinks()}
+        {user && <NotificationBell />}
+      </div>
     </nav>
   );
 };
