@@ -26,7 +26,7 @@ function HomePage(){
 
                 <div className="homepage-register">
                 <h3>Get Started</h3>
-                <a href="/register" class="signup-link">Sign up</a>
+                <a href="/register" className="signup-link">Sign up</a>
                 &nbsp;to build your personalized library and join the conversation.
                  </div>
         </div>
