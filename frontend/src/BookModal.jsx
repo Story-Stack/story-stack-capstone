@@ -132,7 +132,8 @@ function BookModal({ book, onClose, onJoinDiscussion, isJoined }) {
 
         <h2>{title}</h2>
         <p>
-          <strong>Author(s):</strong> {authors?.join(", ") || "Unknown"}
+          <strong>{authors?.length > 1 ? "Authors:" : "Author:"}</strong>
+          {authors?.length > 0 ? ` ${authors.join(", ")}` : " Unknown"}
         </p>
         <p>
           <strong>Publisher:</strong> {publisher || "N/A"}
