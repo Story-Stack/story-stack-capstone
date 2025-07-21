@@ -9,9 +9,11 @@ router.get("/book/:bookId", async (req, res) => {
   try {
     const { bookId } = req.params;
 
+    // Get only top-level comments (not replies)
     const comments = await prisma.comment.findMany({
       where: {
         book_id: bookId,
+        parentId: null, // Only get top-level comments
       },
       include: {
         user: {
@@ -19,6 +21,21 @@ router.get("/book/:bookId", async (req, res) => {
             id: true,
             first_name: true,
             last_name: true,
+          },
+        },
+        // Include replies
+        replies: {
+          include: {
+            user: {
+              select: {
+                id: true,
+                first_name: true,
+                last_name: true,
+              },
+            },
+          },
+          orderBy: {
+            createdAt: "asc",
           },
         },
       },
@@ -34,10 +51,11 @@ router.get("/book/:bookId", async (req, res) => {
   }
 });
 
-// POST /api/comments - Create a new comment
+// POST /api/comments - Create a new comment or reply
 router.post("/", async (req, res) => {
   try {
-    const { content, book_id, book_title, book_data, userId } = req.body;
+    const { content, book_id, book_title, book_data, userId, parentId } =
+      req.body;
 
     if (!content || !book_id || !userId) {
       return res.status(400).json({ error: "Missing required fields" });
@@ -52,15 +70,33 @@ router.post("/", async (req, res) => {
       return res.status(404).json({ error: "User not found" });
     }
 
+    // Prepare comment data
+    const commentData = {
+      content,
+      book_id,
+      book_title: book_title || "Unknown",
+      book_data,
+      userId: parseInt(userId),
+    };
+
+    // If parentId is provided, add it to the comment data
+    if (parentId) {
+      // Verify the parent comment exists
+      const parentComment = await prisma.comment.findUnique({
+        where: { id: parentId },
+      });
+
+      if (!parentComment) {
+        return res.status(404).json({ error: "Parent comment not found" });
+      }
+
+      commentData.parentId = parentId;
+      console.log("Creating reply to comment:", parentId);
+    }
+
     // Create comment
     const comment = await prisma.comment.create({
-      data: {
-        content,
-        book_id,
-        book_title: book_title || "Unknown",
-        book_data,
-        userId: parseInt(userId),
-      },
+      data: commentData,
       include: {
         user: {
           select: {
@@ -69,6 +105,7 @@ router.post("/", async (req, res) => {
             last_name: true,
           },
         },
+        parent: true,
       },
     });
 
