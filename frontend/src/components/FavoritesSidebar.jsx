@@ -1,24 +1,30 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "../App";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import "./FavoritesSidebar.css";
 
 function Sidebar() {
   const [favoritesCount, setFavoritesCount] = useState(0);
   const [shelfCount, setShelfCount] = useState(0);
-  const [recommendationsCount, setRecommendationsCount] = useState(0);
+  const [notificationsCount, setNotificationsCount] = useState(0);
   const { user } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
     if (user) {
       loadFavoritesCount();
       loadShelfCount();
       loadRecommendationsCount();
+      fetchNotificationsCount();
+
+      // Set up polling to check for new notifications every 30 seconds
+      const interval = setInterval(fetchNotificationsCount, 30000);
+      return () => clearInterval(interval);
     } else {
       setFavoritesCount(0);
       setShelfCount(0);
-      setRecommendationsCount(0);
+      setNotificationsCount(0);
     }
   }, [user]);
 
@@ -59,25 +65,36 @@ function Sidebar() {
   };
 
   const loadRecommendationsCount = async () => {
+    // This function is kept for compatibility but doesn't update any state
     if (!user) return;
 
     try {
       const response = await fetch(`/api/recommendations/${user.id}`);
-
-      if (response.ok) {
-        const recommendationsData = await response.json();
-        // Check if topCategories exists and use its length
-        if (recommendationsData.topCategories) {
-          setRecommendationsCount(recommendationsData.topCategories.length);
-        } else {
-          setRecommendationsCount(0);
-        }
-      } else {
-        setRecommendationsCount(0);
+      if (!response.ok) {
+        console.error("Error loading recommendations");
       }
     } catch (error) {
       console.error("Error loading recommendations count:", error);
-      setRecommendationsCount(0);
+    }
+  };
+
+  const fetchNotificationsCount = async () => {
+    if (!user) return;
+
+    try {
+      const response = await fetch(
+        `http://localhost:3000/api/notifications/user/${user.id}`
+      );
+
+      if (response.ok) {
+        const notifications = await response.json();
+        setNotificationsCount(notifications.length);
+      } else {
+        setNotificationsCount(0);
+      }
+    } catch (error) {
+      console.error("Error fetching notifications count:", error);
+      setNotificationsCount(0);
     }
   };
 
@@ -105,10 +122,23 @@ function Sidebar() {
     navigate("/recommendations");
   };
 
+  const handleNotificationsClick = () => {
+    if (!user) {
+      alert("Please sign in to view notifications");
+      return;
+    }
+    navigate("/notifications");
+  };
+
   return (
     <div className="sidebar">
       <nav className="sidebar-nav">
-        <button className="sidebar-tab" onClick={handleFavoritesClick}>
+        <button
+          className={`sidebar-tab ${
+            location.pathname === "/favorites" ? "active" : ""
+          }`}
+          onClick={handleFavoritesClick}
+        >
           <span className="tab-icon">❤️</span>
           <span className="tab-text">My Favorites</span>
           {favoritesCount > 0 && (
@@ -116,18 +146,41 @@ function Sidebar() {
           )}
         </button>
 
-        <button className="sidebar-tab" onClick={handleShelfClick}>
+        <button
+          className={`sidebar-tab ${
+            location.pathname === "/shelf" ? "active" : ""
+          }`}
+          onClick={handleShelfClick}
+        >
           <span className="tab-icon">📚</span>
           <span className="tab-text">My Shelf</span>
           {shelfCount > 0 && <span className="tab-count">{shelfCount}</span>}
         </button>
 
-        <button className="sidebar-tab" onClick={handleRecommendationsClick}>
+        <button
+          className={`sidebar-tab ${
+            location.pathname === "/recommendations" ? "active" : ""
+          }`}
+          onClick={handleRecommendationsClick}
+        >
           <span className="tab-icon">🎯</span>
           <span className="tab-text">My Recommendations</span>
           {/* {recommendationsCount > 0 && (
             <span className="tab-count">{recommendationsCount}</span>
           )} */}
+        </button>
+
+        <button
+          className={`sidebar-tab ${
+            location.pathname === "/notifications" ? "active" : ""
+          }`}
+          onClick={handleNotificationsClick}
+        >
+          <span className="tab-icon">🔔</span>
+          <span className="tab-text">Notifications</span>
+          {notificationsCount > 0 && (
+            <span className="tab-count">{notificationsCount}</span>
+          )}
         </button>
       </nav>
     </div>
