@@ -1,43 +1,45 @@
-
-import { useEffect, useState, useRef } from 'react';
-import './DiscussionPage.css';
+import { useEffect, useState, useRef } from "react";
+import "./DiscussionPage.css";
 import { useNavigate, useParams } from "react-router-dom";
-import { useAuth } from '../App';
+import { useAuth } from "../App";
+import { refreshNotificationsEvent } from "../components/NotificationBell";
 
 export default function DiscussionPage() {
   const [messages, setMessages] = useState([]);
-  const [newMessage, setNewMessage] = useState('');
+  const [newMessage, setNewMessage] = useState("");
   const [bookData, setBookData] = useState(null);
   const messagesEndRef = useRef(null);
   const navigate = useNavigate();
   const { bookId } = useParams();
   const { user } = useAuth();
-  const channelId = bookId; // Use bookId from URL params as channelId
-
-
+  // bookId is used to identify the discussion channel
   // Fetch book data from our database (channel data) or Google Books API as fallback
   useEffect(() => {
     const fetchBookData = async () => {
       if (!bookId) return;
 
       try {
-        console.log('Fetching channel data for bookId:', bookId);
-        const response = await fetch(`http://localhost:3000/api/channels/book/${bookId}`);
+        console.log("Fetching channel data for bookId:", bookId);
+        const response = await fetch(
+          `http://localhost:3000/api/channels/book/${bookId}`
+        );
 
         if (response.ok) {
           const channelData = await response.json();
-          console.log('Channel data received:', channelData);
+          console.log("Channel data received:", channelData);
 
           // Use the stored book_data from the channel
           if (channelData.book_data) {
-            console.log('Book data found:', channelData.book_data);
+            console.log("Book data found:", channelData.book_data);
             setBookData(channelData.book_data);
             return;
           }
         }
 
         // Fallback: Channel doesn't exist or no book_data, fetch from Google Books API
-        console.log('Channel not found, fetching from Google Books API as fallback');
+        console.log(
+          "Channel not found, fetching from Google Books API as fallback"
+        );
         const apiKey = import.meta.env.VITE_GOOGLE_BOOKS_API_KEY;
         const googleBooksResponse = await fetch(
           `https://www.googleapis.com/books/v1/volumes/${bookId}?key=${apiKey}`
@@ -45,13 +47,13 @@ export default function DiscussionPage() {
 
         if (googleBooksResponse.ok) {
           const bookData = await googleBooksResponse.json();
-          console.log('Book data fetched from Google Books:', bookData);
+          console.log("Book data fetched from Google Books:", bookData);
           setBookData(bookData);
         } else {
-          console.log('Failed to fetch book data from Google Books');
+          console.log("Failed to fetch book data from Google Books");
         }
       } catch (error) {
-        console.error('Error fetching book data:', error);
+        console.error("Error fetching book data:", error);
       }
     };
 
@@ -63,20 +65,24 @@ export default function DiscussionPage() {
     const fetchMessages = async () => {
       try {
         // First get the actual channel ID
-        const channelResponse = await fetch(`http://localhost:3000/api/channels/book/${bookId}`);
+        const channelResponse = await fetch(
+          `http://localhost:3000/api/channels/book/${bookId}`
+        );
         if (channelResponse.ok) {
           const channelData = await channelResponse.json();
           const actualChannelId = channelData.id;
 
           // Now fetch messages using the actual channel ID
-          const messagesResponse = await fetch(`http://localhost:3000/api/messages/channel/${actualChannelId}`);
+          const messagesResponse = await fetch(
+            `http://localhost:3000/api/messages/channel/${actualChannelId}`
+          );
           if (messagesResponse.ok) {
             const data = await messagesResponse.json();
             setMessages(data);
           }
         }
       } catch (error) {
-        console.error('Error fetching messages:', error);
+        console.error("Error fetching messages:", error);
       }
     };
 
@@ -87,43 +93,57 @@ export default function DiscussionPage() {
 
   // Send message
   const sendMessage = async () => {
-    if (newMessage.trim() === '' || !user) return;
+    if (newMessage.trim() === "" || !user) return;
 
     try {
-      console.log('Sending message:', { content: newMessage, bookId, userId: user.id });
+      console.log("Sending message:", {
+        content: newMessage,
+        bookId,
+        userId: user.id,
+      });
 
       // First, ensure the channel exists and get the actual channel ID
       const actualChannelId = await ensureChannelExists();
 
       if (!actualChannelId) {
-        console.error('Could not get or create channel');
+        console.error("Could not get or create channel");
         return;
       }
 
-      const response = await fetch('http://localhost:3000/api/messages', {
-        method: 'POST',
+      // Log the data being sent to the server
+      const messageData = {
+        content: newMessage,
+        channelId: actualChannelId, // Use the actual channel UUID
+        userId: user.id, // This should be the Supabase ID
+      };
+
+      // Debug user object to verify we have the correct ID
+      console.log("Current user object:", user);
+      console.log("Sending message data to server:", messageData);
+
+      const response = await fetch("http://localhost:3000/api/messages", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          content: newMessage,
-          channelId: actualChannelId, // Use the actual channel UUID
-          userId: user.id
-        }),
+        body: JSON.stringify(messageData),
       });
 
       if (response.ok) {
         const newMsg = await response.json();
-        console.log('Message sent successfully:', newMsg);
+        console.log("Message sent successfully:", newMsg);
         setMessages((prev) => [...prev, newMsg]);
-        setNewMessage('');
+        setNewMessage("");
+
+        // Trigger notification refresh for all components
+        window.dispatchEvent(refreshNotificationsEvent);
       } else {
-        console.error('Failed to send message, status:', response.status);
+        console.error("Failed to send message, status:", response.status);
         const errorData = await response.text();
-        console.error('Error response:', errorData);
+        console.error("Error response:", errorData);
       }
     } catch (error) {
-      console.error('Error sending message:', error);
+      console.error("Error sending message:", error);
     }
   };
 
@@ -131,55 +151,62 @@ export default function DiscussionPage() {
   const ensureChannelExists = async () => {
     try {
       // Check if channel exists
-      const checkResponse = await fetch(`http://localhost:3000/api/channels/book/${bookId}`);
+      const checkResponse = await fetch(
+        `http://localhost:3000/api/channels/book/${bookId}`
+      );
 
       if (checkResponse.ok) {
         const channelData = await checkResponse.json();
-        console.log('Channel exists, using channel ID:', channelData.id);
+        console.log("Channel exists, using channel ID:", channelData.id);
         return channelData.id; // Return the actual channel UUID
       }
 
       // Channel doesn't exist, create it
-      console.log('Channel does not exist, creating it...');
+      console.log("Channel does not exist, creating it...");
 
       if (bookData) {
-        const createResponse = await fetch('http://localhost:3000/api/user-channels/join', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            userId: user.id,
-            bookId: bookId,
-            bookTitle: bookData.volumeInfo?.title || 'Unknown Title',
-            bookData: bookData
-          }),
-        });
+        const createResponse = await fetch(
+          "http://localhost:3000/api/user-channels/join",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              userId: user.id,
+              bookId: bookId,
+              bookTitle: bookData.volumeInfo?.title || "Unknown Title",
+              bookData: bookData,
+            }),
+          }
+        );
 
         if (createResponse.ok) {
-          console.log('Channel created successfully');
+          console.log("Channel created successfully");
           // Fetch the channel again to get the ID
-          const newCheckResponse = await fetch(`http://localhost:3000/api/channels/book/${bookId}`);
+          const newCheckResponse = await fetch(
+            `http://localhost:3000/api/channels/book/${bookId}`
+          );
           if (newCheckResponse.ok) {
             const newChannelData = await newCheckResponse.json();
-            console.log('New channel ID:', newChannelData.id);
+            console.log("New channel ID:", newChannelData.id);
             return newChannelData.id;
           }
         } else {
-          console.error('Failed to create channel');
+          console.error("Failed to create channel");
         }
       }
 
       return null;
     } catch (error) {
-      console.error('Error ensuring channel exists:', error);
+      console.error("Error ensuring channel exists:", error);
       return null;
     }
   };
 
   // Auto-scroll to bottom
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
   return (
@@ -192,7 +219,8 @@ export default function DiscussionPage() {
           <h1 className="chat-title">Discussion</h1>
           {bookData && (
             <h2 className="book-info">
-              {bookData.volumeInfo?.title} - {bookData.volumeInfo?.authors?.join(', ') || 'Unknown Author'}
+              {bookData.volumeInfo?.title} -{" "}
+              {bookData.volumeInfo?.authors?.join(", ") || "Unknown Author"}
             </h2>
           )}
         </div>
@@ -204,19 +232,28 @@ export default function DiscussionPage() {
           return (
             <div
               key={index}
-              className={`message-wrapper ${isCurrentUser ? 'sent' : 'received'}`}
+              className={`message-wrapper ${
+                isCurrentUser ? "sent" : "received"
+              }`}
             >
-              <div className={`message-bubble ${isCurrentUser ? 'sent-bubble' : 'received-bubble'}`}>
+              <div
+                className={`message-bubble ${
+                  isCurrentUser ? "sent-bubble" : "received-bubble"
+                }`}
+              >
                 {!isCurrentUser && (
                   <div className="sender-name">{msg.sender}</div>
                 )}
-                
+
                 <div className="message-content">{msg.content}</div>
                 <div className="message-time">
-                  {new Date(msg.created_at || msg.timestamp).toLocaleTimeString([], {
-                    hour: '2-digit',
-                    minute: '2-digit'
-                  })}
+                  {new Date(msg.created_at || msg.timestamp).toLocaleTimeString(
+                    [],
+                    {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    }
+                  )}
                 </div>
               </div>
             </div>
@@ -230,13 +267,10 @@ export default function DiscussionPage() {
           className="message-input"
           value={newMessage}
           onChange={(e) => setNewMessage(e.target.value)}
-          onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
+          onKeyDown={(e) => e.key === "Enter" && sendMessage()}
           placeholder="Type a message..."
         />
-        <button
-          onClick={sendMessage}
-          className="send-button"
-        >
+        <button onClick={sendMessage} className="send-button">
           Send
         </button>
       </div>

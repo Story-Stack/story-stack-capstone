@@ -1,7 +1,10 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "../App";
 import { useNavigate } from "react-router-dom";
 import "./NotificationBell.css";
+
+// Create a custom event for notification refresh
+export const refreshNotificationsEvent = new Event("refreshNotifications");
 
 function NotificationBell() {
   const [notifications, setNotifications] = useState([]);
@@ -10,34 +13,53 @@ function NotificationBell() {
   const { user } = useAuth();
   const navigate = useNavigate();
 
-  useEffect(() => {
-    if (user) {
-      fetchNotifications();
-      // Set up polling to check for new notifications every 30 seconds
-      const interval = setInterval(fetchNotifications, 30000);
-      return () => clearInterval(interval);
-    }
-  }, [user]);
-
-  const fetchNotifications = async () => {
+  // Make fetchNotifications a useCallback so it can be used in the event listener
+  const fetchNotifications = useCallback(async () => {
     if (!user) return;
 
     try {
+      console.log("Fetching notifications for user:", user.id);
       const response = await fetch(
         `http://localhost:3000/api/notifications/user/${user.id}`
       );
 
       if (response.ok) {
         const data = await response.json();
-        setNotifications(data);
-        setUnreadCount(data.length);
+        console.log("Notifications received:", data.length);
+        console.log("Notification data:", data);
+
+        // Check if any notifications have isRead set to undefined and fix it
+        const fixedData = data.map(notification => ({
+          ...notification,
+          isRead: notification.isRead === undefined ? false : notification.isRead
+        }));
+
+        setNotifications(fixedData);
+        setUnreadCount(fixedData.filter((n) => !n.isRead).length);
       } else {
         console.error("Failed to fetch notifications");
       }
     } catch (error) {
       console.error("Error fetching notifications:", error);
     }
-  };
+  }, [user]);
+
+  useEffect(() => {
+    if (user) {
+      fetchNotifications();
+
+      // Set up polling to check for new notifications every 10 seconds (more frequent)
+      const interval = setInterval(fetchNotifications, 10000);
+
+      // Add event listener for manual refresh
+      window.addEventListener("refreshNotifications", fetchNotifications);
+
+      return () => {
+        clearInterval(interval);
+        window.removeEventListener("refreshNotifications", fetchNotifications);
+      };
+    }
+  }, [user, fetchNotifications]);
 
   const handleBellClick = () => {
     setShowDropdown(!showDropdown);

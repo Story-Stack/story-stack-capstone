@@ -2,7 +2,10 @@ const express = require("express");
 const { PrismaClient } = require("../generated/prisma");
 
 const router = express.Router();
-const prisma = new PrismaClient();
+// Create a new instance of PrismaClient with debug logging
+const prisma = new PrismaClient({
+  log: ['query', 'info', 'warn', 'error'],
+});
 
 // Get all unread notifications for a user
 router.get("/user/:userId", async (req, res) => {
@@ -25,10 +28,11 @@ router.get("/user/:userId", async (req, res) => {
 
     console.log("Found user with internal ID:", user.id);
 
+    // Get all notifications for the user, not just unread ones
     const notifications = await prisma.notification.findMany({
       where: {
         user_id: user.id,
-        is_read: false,
+        // Removed is_read: false to get all notifications
       },
       include: {
         channel: true,
@@ -42,16 +46,23 @@ router.get("/user/:userId", async (req, res) => {
     console.log(`Found ${notifications.length} notifications for user`);
 
     // Format notifications for frontend
-    const formattedNotifications = notifications.map((notification) => ({
-      id: notification.id,
-      content: notification.content,
-      channelId: notification.channel_id,
-      messageId: notification.message_id,
-      bookId: notification.channel.book_id,
-      bookTitle: notification.channel.book_title,
-      createdAt: notification.created_at,
-      isRead: notification.is_read,
-    }));
+    // Format notifications for frontend with more detailed logging
+    console.log('Raw notifications from database:', JSON.stringify(notifications.slice(0, 2), null, 2));
+
+    const formattedNotifications = notifications.map((notification) => {
+      const formatted = {
+        id: notification.id,
+        content: notification.content,
+        channelId: notification.channel_id,
+        messageId: notification.message_id,
+        bookId: notification.channel.book_id,
+        bookTitle: notification.channel.book_title,
+        createdAt: notification.created_at,
+        isRead: notification.is_read,
+      };
+      console.log(`Formatted notification ${notification.id}:`, formatted);
+      return formatted;
+    });
 
     res.json(formattedNotifications);
   } catch (error) {
