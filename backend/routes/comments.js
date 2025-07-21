@@ -17,6 +17,7 @@ async function getAllCommentsWithReplies(bookId) {
           id: true,
           first_name: true,
           last_name: true,
+          email: true, // Include email field
         },
       },
     },
@@ -135,6 +136,7 @@ router.post("/", async (req, res) => {
             id: true,
             first_name: true,
             last_name: true,
+            email: true, // Include email field
           },
         },
         parent: true,
