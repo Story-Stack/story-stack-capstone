@@ -120,10 +120,21 @@ function BookModal({ book, onClose, onJoinDiscussion, isJoined }) {
     }
   };
 
+  // Function to get display name from user data
+  const getDisplayName = (user) => {
+    // use the part of email before @
+    if (user?.email) {
+      return user.email.split("@")[0];
+    }
+
+    // Fallback to Anonymous
+    return "Anonymous";
+  };
+
   const handleReply = (comment) => {
     setReplyingTo(comment);
     setShowCommentForm(true);
-    setNewComment(`@${comment.user?.first_name || "Anonymous"} `);
+    setNewComment(`@${getDisplayName(comment.user)} `);
   };
 
   const cancelReply = () => {
@@ -245,9 +256,7 @@ function BookModal({ book, onClose, onJoinDiscussion, isJoined }) {
           <div className="comment-form">
             {replyingTo && (
               <div className="replying-to">
-                <span>
-                  Replying to {replyingTo.user?.first_name || "Anonymous"}
-                </span>
+                <span>Replying to {getDisplayName(replyingTo.user)}</span>
                 <button onClick={cancelReply} className="cancel-reply-btn">
                   ✕
                 </button>

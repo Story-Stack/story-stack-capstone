@@ -33,16 +33,46 @@ const CommentItem = ({
     return "reply-btn deep-nested-reply-btn";
   };
 
+  // Function to get display name from user data
+  const getDisplayName = (user) => {
+    // First try to use first_name if available
+    if (user?.first_name) {
+      return user.first_name;
+    }
+
+    // If no first_name, use the part of email before @
+    if (user?.email) {
+      return user.email.split("@")[0];
+    }
+
+    // Fallback to Anonymous
+    return "Anonymous";
+  };
+
+  // Function to get avatar letter
+  const getAvatarLetter = (user) => {
+    // First try to use first letter of first_name
+    if (user?.first_name && user.first_name.length > 0) {
+      return user.first_name[0].toUpperCase();
+    }
+
+    // If no first_name, use first letter of email
+    if (user?.email && user.email.length > 0) {
+      return user.email[0].toUpperCase();
+    }
+
+    // Fallback to "A" for Anonymous
+    return "A";
+  };
+
   return (
     <div className={nestingLevel === 0 ? "comment" : getReplyClass()}>
       <div className="comment-header">
         <div className="comment-author">
           <div className={getAvatarClass()}>
-            {comment.user?.first_name?.[0] || "A"}
+            {getAvatarLetter(comment.user)}
           </div>
-          <span className="author-name">
-            {comment.user?.first_name || "Anonymous"}
-          </span>
+          <span className="author-name">{getDisplayName(comment.user)}</span>
         </div>
         <span className="comment-time">{formatTime(comment.createdAt)}</span>
       </div>
