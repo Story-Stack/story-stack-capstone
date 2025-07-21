@@ -4,7 +4,7 @@ const { PrismaClient } = require("../generated/prisma");
 const router = express.Router();
 // Create a new instance of PrismaClient with debug logging
 const prisma = new PrismaClient({
-  log: ['query', 'info', 'warn', 'error'],
+  log: ["query", "info", "warn", "error"],
 });
 
 // Get all unread notifications for a user
@@ -47,7 +47,10 @@ router.get("/user/:userId", async (req, res) => {
 
     // Format notifications for frontend
     // Format notifications for frontend with more detailed logging
-    console.log('Raw notifications from database:', JSON.stringify(notifications.slice(0, 2), null, 2));
+    console.log(
+      "Raw notifications from database:",
+      JSON.stringify(notifications.slice(0, 2), null, 2)
+    );
 
     const formattedNotifications = notifications.map((notification) => {
       const formatted = {

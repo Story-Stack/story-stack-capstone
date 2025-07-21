@@ -29,9 +29,10 @@ function NotificationBell() {
         console.log("Notification data:", data);
 
         // Check if any notifications have isRead set to undefined and fix it
-        const fixedData = data.map(notification => ({
+        const fixedData = data.map((notification) => ({
           ...notification,
-          isRead: notification.isRead === undefined ? false : notification.isRead
+          isRead:
+            notification.isRead === undefined ? false : notification.isRead,
         }));
 
         setNotifications(fixedData);

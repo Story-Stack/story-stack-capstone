@@ -89,6 +89,11 @@ model Message {
   channel    Channel  @relation(fields: [channelId], references: [id])
   channelId  String
 
+  // Reply functionality
+  parentId   String?  // ID of the parent message (if this is a reply)
+  parent     Message? @relation("MessageReplies", fields: [parentId], references: [id], onDelete: SetNull)
+  replies    Message[] @relation("MessageReplies")
+
   notifications Notification[]
 }
 
@@ -103,6 +108,11 @@ model Comment {
   // Relations
   user        User      @relation(fields: [userId], references: [id])
   userId      Int
+
+  // Reply functionality
+  parentId    String?   // ID of the parent comment (if this is a reply)
+  parent      Comment?  @relation("CommentReplies", fields: [parentId], references: [id], onDelete: SetNull)
+  replies     Comment[] @relation("CommentReplies")
 }
 
 model UserCategoryScore {
