@@ -217,7 +217,7 @@
   margin-bottom: 12px;
 }
 
-/* Reply styles */
+/* Reply styles - Base styles for all nesting levels */
 .replies-container {
   margin-top: 10px;
   margin-left: 20px;
@@ -236,6 +236,70 @@
   font-size: 0.9em;
   width: 25px;
   height: 25px;
+}
+
+/* Nested reply styles - Level 1 */
+.nested-replies {
+  margin-left: 15px;
+  border-left: 2px solid #d0d0d0;
+}
+
+.nested-reply {
+  background-color: #e8eaed;
+  font-size: 0.95em;
+}
+
+.nested-reply-avatar {
+  font-size: 0.85em;
+  width: 22px;
+  height: 22px;
+}
+
+.nested-reply-btn {
+  font-size: 0.9em;
+}
+
+/* Deep nested reply styles - Level 2+ */
+.deep-nested-replies {
+  margin-left: 12px;
+  border-left: 2px solid #c0c0c0;
+}
+
+.deep-nested-reply {
+  background-color: #e0e2e5;
+  font-size: 0.9em;
+}
+
+.deep-nested-reply-avatar {
+  font-size: 0.8em;
+  width: 20px;
+  height: 20px;
+}
+
+.deep-nested-reply-btn {
+  font-size: 0.85em;
+}
+
+/* For very deep nesting levels (beyond level 3) */
+.replies-container .replies-container .replies-container .replies-container {
+  margin-left: 8px; /* Reduce margin for very deep nesting */
+  border-left: 1px solid #b0b0b0; /* Thinner border */
+}
+
+/* Ensure text remains readable at deep nesting levels */
+.replies-container .replies-container .replies-container .reply {
+  font-size: 0.85em; /* Slightly smaller font */
+  padding: 8px; /* Smaller padding */
+  background-color: #d8dadd; /* Slightly darker background */
+}
+
+/* Prevent excessive nesting from making content too small */
+.replies-container
+  .replies-container
+  .replies-container
+  .replies-container
+  .reply {
+  font-size: 0.85em; /* Don't make text any smaller beyond this point */
 }
 
 .replying-to {

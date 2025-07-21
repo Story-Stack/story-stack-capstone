@@ -1,5 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { supabase } from "../utils/supabaseClient";
+import CommentItem from "./components/CommentItem";
 import "./BookModal.css";
 
 function BookModal({ book, onClose, onJoinDiscussion, isJoined }) {
@@ -102,25 +103,15 @@ function BookModal({ book, onClose, onJoinDiscussion, isJoined }) {
       });
 
       if (response.ok) {
-        const comment = await response.json();
+        const newReply = await response.json();
+        console.log("New reply created:", newReply);
 
-        if (replyingTo) {
-          // If it's a reply, update the parent comment's replies
-          setComments((prev) =>
-            prev.map((c) =>
-              c.id === replyingTo.id
-                ? { ...c, replies: [...(c.replies || []), comment] }
-                : c
-            )
-          );
-          setReplyingTo(null);
-        } else {
-          // If it's a top-level comment, add it to the list
-          setComments((prev) => [comment, ...prev]);
-        }
+        // After creating a reply, fetch all comments again to get the updated structure
+        await fetchComments();
 
         setNewComment("");
         setShowCommentForm(false);
+        setReplyingTo(null);
       }
     } catch (error) {
       console.error("Error adding comment:", error);
@@ -139,6 +130,31 @@ function BookModal({ book, onClose, onJoinDiscussion, isJoined }) {
     setReplyingTo(null);
     setNewComment("");
   };
+
+  // Function to count total comments including all replies
+  const countTotalComments = (commentsList) => {
+    let total = 0;
+
+    const countReplies = (comment) => {
+      // Count this comment
+      total++;
+
+      // Count all replies recursively
+      if (comment.replies && comment.replies.length > 0) {
+        comment.replies.forEach((reply) => countReplies(reply));
+      }
+    };
+
+    // Count all top-level comments and their replies
+    commentsList.forEach((comment) => countReplies(comment));
+
+    return total;
+  };
+
+  // Calculate total comment count including all replies
+  const totalCommentCount = useMemo(() => {
+    return countTotalComments(comments);
+  }, [comments]);
 
   const formatTime = (timestamp) => {
     const date = new Date(timestamp);
@@ -278,7 +294,10 @@ function BookModal({ book, onClose, onJoinDiscussion, isJoined }) {
         )}
 
         <div className="comments-section">
-          <h3>Comments ({comments.length})</h3>
+          <h3>
+            {totalCommentCount}{" "}
+            {totalCommentCount === 1 ? "Comment" : "Comments"}
+          </h3>
           {comments.length === 0 ? (
             <p className="no-comments">
               No comments yet. Be the first to share your thoughts!
@@ -286,54 +305,12 @@ function BookModal({ book, onClose, onJoinDiscussion, isJoined }) {
           ) : (
             <div className="comments-list">
               {comments.map((comment) => (
-                <div key={comment.id} className="comment">
-                  <div className="comment-header">
-                    <div className="comment-author">
-                      <div className="author-avatar">
-                        {comment.user?.first_name?.[0] || "A"}
-                      </div>
-                      <span className="author-name">
-                        {comment.user?.first_name || "Anonymous"}
-                      </span>
-                    </div>
-                    <span className="comment-time">
-                      {formatTime(comment.createdAt)}
-                    </span>
-                  </div>
-                  <div className="comment-content">{comment.content}</div>
-                  <div className="comment-actions">
-                    <button
-                      className="reply-btn"
-                      onClick={() => handleReply(comment)}
-                    >
-                      Reply
-                    </button>
-                  </div>
-
-                  {/* Display replies */}
-                  {comment.replies && comment.replies.length > 0 && (
-                    <div className="replies-container">
-                      {comment.replies.map((reply) => (
-                        <div key={reply.id} className="reply">
-                          <div className="comment-header">
-                            <div className="comment-author">
-                              <div className="author-avatar reply-avatar">
-                                {reply.user?.first_name?.[0] || "A"}
-                              </div>
-                              <span className="author-name">
-                                {reply.user?.first_name || "Anonymous"}
-                              </span>
-                            </div>
-                            <span className="comment-time">
-                              {formatTime(reply.createdAt)}
-                            </span>
-                          </div>
-                          <div className="comment-content">{reply.content}</div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
+                <CommentItem
+                  key={comment.id}
+                  comment={comment}
+                  formatTime={formatTime}
+                  handleReply={handleReply}
+                />
               ))}
             </div>
           )}

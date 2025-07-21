@@ -4,45 +4,77 @@ const { PrismaClient } = require("../generated/prisma");
 const router = express.Router();
 const prisma = new PrismaClient();
 
+// Helper function to get all comments for a book with their full reply tree
+async function getAllCommentsWithReplies(bookId) {
+  // First, get all comments for this book (both top-level and replies)
+  const allComments = await prisma.comment.findMany({
+    where: {
+      book_id: bookId,
+    },
+    include: {
+      user: {
+        select: {
+          id: true,
+          first_name: true,
+          last_name: true,
+        },
+      },
+    },
+    orderBy: {
+      createdAt: "asc",
+    },
+  });
+
+  // Create a map for quick lookup
+  const commentMap = new Map();
+  allComments.forEach((comment) => {
+    // Initialize replies array for each comment
+    comment.replies = [];
+    commentMap.set(comment.id, comment);
+  });
+
+  // Build the tree structure
+  const rootComments = [];
+  allComments.forEach((comment) => {
+    if (comment.parentId) {
+      // This is a reply, add it to its parent's replies
+      const parent = commentMap.get(comment.parentId);
+      if (parent) {
+        parent.replies.push(comment);
+      }
+    } else {
+      // This is a top-level comment
+      rootComments.push(comment);
+    }
+  });
+
+  // Sort replies by creation time
+  const sortReplies = (comments) => {
+    comments.forEach((comment) => {
+      if (comment.replies.length > 0) {
+        comment.replies.sort(
+          (a, b) => new Date(a.createdAt) - new Date(b.createdAt)
+        );
+        sortReplies(comment.replies);
+      }
+    });
+  };
+
+  sortReplies(rootComments);
+
+  // Sort root comments by creation time (newest first)
+  rootComments.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+  return rootComments;
+}
+
 // GET /api/comments/book/:bookId - Get comments for a book
 router.get("/book/:bookId", async (req, res) => {
   try {
     const { bookId } = req.params;
 
-    // Get only top-level comments (not replies)
-    const comments = await prisma.comment.findMany({
-      where: {
-        book_id: bookId,
-        parentId: null, // Only get top-level comments
-      },
-      include: {
-        user: {
-          select: {
-            id: true,
-            first_name: true,
-            last_name: true,
-          },
-        },
-        // Include replies
-        replies: {
-          include: {
-            user: {
-              select: {
-                id: true,
-                first_name: true,
-                last_name: true,
-              },
-            },
-          },
-          orderBy: {
-            createdAt: "asc",
-          },
-        },
-      },
-      orderBy: {
-        createdAt: "desc",
-      },
-    });
+    // Get all comments with their full reply tree
+    const comments = await getAllCommentsWithReplies(bookId);
 
     res.json(comments);
   } catch (error) {
