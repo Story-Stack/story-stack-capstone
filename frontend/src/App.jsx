@@ -19,6 +19,7 @@ import FavoritesPage from "./pages/FavoritesPage";
 import ShelfPage from "./pages/ShelfPage";
 import RecommendationsPage from "./pages/RecommendationsPage";
 import DiscussionPage from "./pages/DiscussionPage";
+import NotificationsPage from "./pages/NotificationsPage";
 import SignIn from "./pages/authentication-pages/SignIn";
 import Register from "./pages/authentication-pages/Register";
 
@@ -380,6 +381,14 @@ function App() {
                   element={
                     <ProtectedRoute>
                       <DiscussionPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/notifications"
+                  element={
+                    <ProtectedRoute>
+                      <NotificationsPage />
                     </ProtectedRoute>
                   }
                 />

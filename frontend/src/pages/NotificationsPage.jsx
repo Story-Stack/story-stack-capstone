@@ -1,0 +1,178 @@
+import { useState, useEffect } from "react";
+import { useAuth } from "../App";
+import { useNavigate } from "react-router-dom";
+import Sidebar from "../components/FavoritesSidebar";
+import "./NotificationsPage.css";
+
+function NotificationsPage() {
+  const [notifications, setNotifications] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const { user } = useAuth();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (user) {
+      fetchNotifications();
+    }
+  }, [user]);
+
+  const fetchNotifications = async () => {
+    if (!user) return;
+
+    try {
+      setLoading(true);
+      const response = await fetch(
+        `http://localhost:3000/api/notifications/user/${user.id}`
+      );
+
+      if (response.ok) {
+        const data = await response.json();
+        setNotifications(data);
+      } else {
+        console.error("Failed to fetch notifications");
+        setNotifications([]);
+      }
+    } catch (error) {
+      console.error("Error fetching notifications:", error);
+      setNotifications([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleNotificationClick = async (notification) => {
+    // Mark notification as read
+    try {
+      await fetch(
+        `http://localhost:3000/api/notifications/${notification.id}/read`,
+        {
+          method: "PUT",
+        }
+      );
+
+      // Update local state
+      setNotifications((prevNotifications) =>
+        prevNotifications.map((n) =>
+          n.id === notification.id ? { ...n, isRead: true } : n
+        )
+      );
+
+      // Navigate to the discussion page for this book/channel
+      navigate(`/discussion/${notification.bookId}`);
+    } catch (error) {
+      console.error("Error marking notification as read:", error);
+    }
+  };
+
+  const handleMarkAllRead = async () => {
+    if (!user || notifications.length === 0) return;
+
+    try {
+      await fetch(
+        `http://localhost:3000/api/notifications/user/${user.id}/read-all`,
+        {
+          method: "PUT",
+        }
+      );
+
+      // Update local state
+      setNotifications((prevNotifications) =>
+        prevNotifications.map((n) => ({ ...n, isRead: true }))
+      );
+    } catch (error) {
+      console.error("Error marking all notifications as read:", error);
+    }
+  };
+
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffInDays = Math.floor((now - date) / (1000 * 60 * 60 * 24));
+
+    if (diffInDays === 0) {
+      return `Today at ${date.toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit",
+      })}`;
+    } else if (diffInDays === 1) {
+      return `Yesterday at ${date.toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit",
+      })}`;
+    } else if (diffInDays < 7) {
+      return `${diffInDays} days ago`;
+    } else {
+      return date.toLocaleDateString([], {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+      });
+    }
+  };
+
+  return (
+    <div className="page-with-sidebar">
+      <div className="sidebar-container">
+        <Sidebar />
+      </div>
+      <div className="notifications-page">
+        <div className="notifications-header">
+          <h1>Notifications</h1>
+          {notifications.length > 0 && (
+            <button className="mark-all-read-btn" onClick={handleMarkAllRead}>
+              Mark all as read
+            </button>
+          )}
+        </div>
+
+        {loading ? (
+          <div className="loading">Loading notifications...</div>
+        ) : (
+          <div className="notifications-container">
+            {notifications.length > 0 ? (
+              <div className="notifications-list">
+                {notifications.map((notification) => (
+                  <div
+                    key={notification.id}
+                    className={`notification-item ${
+                      notification.isRead ? "read" : "unread"
+                    }`}
+                    onClick={() => handleNotificationClick(notification)}
+                  >
+                    <div className="notification-content">
+                      <p>{notification.content}</p>
+                      <div className="notification-book">
+                        <span className="book-icon">📖</span>
+                        <span className="book-title">
+                          {notification.bookTitle}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="notification-meta">
+                      <span className="notification-time">
+                        {formatDate(notification.createdAt)}
+                      </span>
+                      {!notification.isRead && (
+                        <span className="unread-indicator"></span>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="no-notifications">
+                <p>You don't have any notifications yet.</p>
+                <p>
+                  When someone posts in a book discussion you've joined, you'll
+                  see it here.
+                </p>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+export default NotificationsPage;

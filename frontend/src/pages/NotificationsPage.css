@@ -1,0 +1,140 @@
+.page-with-sidebar {
+  display: flex;
+  gap: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.sidebar-container {
+  width: 250px;
+  flex-shrink: 0;
+}
+
+.notifications-page {
+  flex: 1;
+  max-width: 800px;
+  padding: 0;
+}
+
+.notifications-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.notifications-header h1 {
+  margin: 0;
+  font-size: 1.8rem;
+  color: #333;
+}
+
+.mark-all-read-btn {
+  background-color: #f0f0f0;
+  border: none;
+  border-radius: 4px;
+  padding: 8px 16px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.mark-all-read-btn:hover {
+  background-color: #e0e0e0;
+}
+
+.loading {
+  text-align: center;
+  padding: 40px;
+  color: #666;
+  font-size: 1rem;
+}
+
+.notifications-container {
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+  overflow: hidden;
+}
+
+.notifications-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.notification-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid #f0f0f0;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.notification-item:hover {
+  background-color: #f9f9f9;
+}
+
+.notification-item.unread {
+  background-color: #f0f7ff;
+}
+
+.notification-content {
+  flex: 1;
+}
+
+.notification-content p {
+  margin: 0 0 8px 0;
+  font-size: 1rem;
+  line-height: 1.5;
+  color: #333;
+}
+
+.notification-book {
+  display: flex;
+  align-items: center;
+  font-size: 0.9rem;
+  color: #666;
+}
+
+.book-icon {
+  margin-right: 5px;
+}
+
+.notification-meta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  justify-content: space-between;
+  min-width: 100px;
+}
+
+.notification-time {
+  font-size: 0.8rem;
+  color: #888;
+  margin-bottom: 5px;
+}
+
+.unread-indicator {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: #3498db;
+}
+
+.no-notifications {
+  padding: 40px 20px;
+  text-align: center;
+  color: #666;
+}
+
+.no-notifications p:first-child {
+  font-size: 1.1rem;
+  margin-bottom: 10px;
+}
+
+.no-notifications p:last-child {
+  font-size: 0.9rem;
+  color: #888;
+}
