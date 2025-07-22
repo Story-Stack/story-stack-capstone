@@ -43,28 +43,41 @@ router.get("/user/:userId", async (req, res) => {
       },
     });
 
+    // Debug: Log raw notification data
+    console.log("Raw notification data:", JSON.stringify(notifications, null, 2));
+
     console.log(`Found ${notifications.length} notifications for user`);
 
     // Format notifications for frontend
     // Format notifications for frontend with more detailed logging
-    console.log(
-      "Raw notifications from database:",
-      JSON.stringify(notifications.slice(0, 2), null, 2)
-    );
+    console.log('Raw notifications from database:', JSON.stringify(notifications.slice(0, 2), null, 2));
 
     const formattedNotifications = notifications.map((notification) => {
-      const formatted = {
-        id: notification.id,
-        content: notification.content,
-        channelId: notification.channel_id,
-        messageId: notification.message_id,
-        bookId: notification.channel.book_id,
-        bookTitle: notification.channel.book_title,
-        createdAt: notification.created_at,
-        isRead: notification.is_read,
-      };
-      console.log(`Formatted notification ${notification.id}:`, formatted);
-      return formatted;
+      try {
+        const formatted = {
+          id: notification.id,
+          content: notification.content,
+          channelId: notification.channel_id,
+          messageId: notification.message_id,
+          comment_id: notification.comment_id, // Include comment_id
+          bookId: notification.book_id || (notification.channel ? notification.channel.book_id : null), // Use direct book_id if available
+          bookTitle: notification.channel ? notification.channel.book_title : "Unknown Book",
+          createdAt: notification.created_at,
+          isRead: notification.is_read,
+        };
+        console.log(`Formatted notification ${notification.id}:`, formatted);
+        return formatted;
+      } catch (error) {
+        console.error(`Error formatting notification ${notification.id}:`, error);
+        console.error('Problematic notification:', notification);
+        // Return a minimal notification to prevent the entire request from failing
+        return {
+          id: notification.id,
+          content: notification.content || "New notification",
+          createdAt: notification.created_at,
+          isRead: notification.is_read || false,
+        };
+      }
     });
 
     res.json(formattedNotifications);

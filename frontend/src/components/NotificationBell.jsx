@@ -84,8 +84,25 @@ function NotificationBell() {
       );
       setUnreadCount((prev) => Math.max(0, prev - 1));
 
-      // Navigate to the discussion page for this book/channel
-      navigate(`/discussion/${notification.bookId}`);
+      console.log("Handling notification click:", notification);
+
+      // If it's a comment notification (has comment_id)
+      if (notification.comment_id) {
+        console.log(
+          `Navigating to book page with comment: /book/${notification.bookId}?comment=${notification.comment_id}`
+        );
+        // Navigate to the book page with the comment ID
+        navigate(
+          `/book/${notification.bookId}?comment=${notification.comment_id}`
+        );
+      } else {
+        // Navigate to the discussion page for this book/channel
+        console.log(
+          `Navigating to discussion page: /discussion/${notification.bookId}`
+        );
+        navigate(`/discussion/${notification.bookId}`);
+      }
+
       setShowDropdown(false);
     } catch (error) {
       console.error("Error marking notification as read:", error);

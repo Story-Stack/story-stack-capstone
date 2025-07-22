@@ -393,6 +393,16 @@ function App() {
                   }
                 />
 
+                {/* Route for book page with comment highlighting */}
+                <Route
+                  path="/book/:bookId"
+                  element={
+                    <ProtectedRoute>
+                      <Dashboard />
+                    </ProtectedRoute>
+                  }
+                />
+
                 {/* Catch all route - redirect to home */}
                 <Route path="*" element={<Navigate to="/" replace />} />
               </Routes>
