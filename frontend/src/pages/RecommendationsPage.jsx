@@ -49,6 +49,16 @@ function RecommendationsPage() {
     }
   };
 
+  // Fisher-Yates shuffle algorithm
+  const shuffleArray = (array) => {
+    const shuffled = [...array];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    return shuffled;
+  };
+
   const fetchBooksFromCategories = async (topCategories) => {
     const allBooks = [];
 
@@ -73,15 +83,18 @@ function RecommendationsPage() {
         }
       }
 
-      // Remove duplicates and limit to 20 books
-      const uniqueBooks = allBooks
-        .filter(
-          (book, index, self) =>
-            index === self.findIndex((b) => b.id === book.id)
-        )
-        .slice(0, recommendationsLimit);
+      // Remove duplicates
+      const uniqueBooks = allBooks.filter(
+        (book, index, self) => index === self.findIndex((b) => b.id === book.id)
+      );
 
-      return uniqueBooks;
+      // Shuffle the books to randomize the order
+      const shuffledBooks = shuffleArray(uniqueBooks).slice(
+        0,
+        recommendationsLimit
+      );
+
+      return shuffledBooks;
     } catch (error) {
       console.error("Error fetching books from Google Books API:", error);
       return [];
@@ -122,11 +135,35 @@ function RecommendationsPage() {
     );
   }
 
+  // Function to manually shuffle the recommendations with animation
+  const handleShuffle = () => {
+    // Add shuffling class to trigger animation
+    const gridElement = document.querySelector(".recommendations-grid");
+    if (gridElement) {
+      gridElement.classList.add("shuffling");
+
+      // Remove the class after animation completes
+      setTimeout(() => {
+        gridElement.classList.remove("shuffling");
+      }, 500); // Match the animation duration
+    }
+
+    // Shuffle the recommendations
+    setRecommendations(shuffleArray([...recommendations]));
+  };
+
   return (
     <div className="recommendations-page">
       <Sidebar />
       <div className="recommendations-content">
-        <h1>Recommended Books For You!</h1>
+        <div className="recommendations-header">
+          <h1>Recommended Books For You!</h1>
+          {recommendations.length > 0 && (
+            <button className="shuffle-button" onClick={handleShuffle}>
+              <span className="shuffle-icon">🔀</span> Shuffle
+            </button>
+          )}
+        </div>
         {recommendations.length === 0 ? (
           <div className="no-recommendations">
             <p>No recommendations available yet.</p>
