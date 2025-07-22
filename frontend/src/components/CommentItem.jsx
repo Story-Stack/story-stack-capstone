@@ -1,5 +1,6 @@
 // No need to import React with modern JSX transform
 import { useEffect, useRef } from "react";
+import "./CommentItem.css";
 
 // Recursive comment component that can render comments at any nesting level
 const CommentItem = ({
@@ -116,8 +117,15 @@ const CommentItem = ({
         <button
           className={getReplyBtnClass()}
           onClick={() => handleReply(comment)}
+          aria-label="Reply to comment"
         >
-          Reply
+          <span className="reply-icon">💬</span>
+          <span className="reply-text">
+            Reply
+            {comment.replies && comment.replies.length > 0 && (
+              <span className="reply-count">{comment.replies.length}</span>
+            )}
+          </span>
         </button>
       </div>
 

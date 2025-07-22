@@ -57,8 +57,15 @@ function NotificationsPage() {
         )
       );
 
-      // Navigate to the discussion page for this book/channel
-      navigate(`/discussion/${notification.bookId}`);
+      // Navigate to the appropriate page based on notification type
+      if (notification.isRecommendation) {
+        // For recommendation notifications, navigate to the book details page
+        // You might want to create a dedicated book details page or use an existing one
+        navigate(`/discussion/${notification.bookId}`);
+      } else {
+        // For regular notifications, navigate to the discussion page
+        navigate(`/discussion/${notification.bookId}`);
+      }
     } catch (error) {
       console.error("Error marking notification as read:", error);
     }
@@ -136,17 +143,53 @@ function NotificationsPage() {
                     key={notification.id}
                     className={`notification-item ${
                       notification.isRead ? "read" : "unread"
-                    }`}
+                    } ${notification.isRecommendation ? "recommendation" : ""}`}
                     onClick={() => handleNotificationClick(notification)}
                   >
                     <div className="notification-content">
+                      {notification.isRecommendation && (
+                        <div className="recommendation-badge">
+                          📚 Recommendation
+                        </div>
+                      )}
                       <p>{notification.content}</p>
                       <div className="notification-book">
-                        <span className="book-icon">📖</span>
+                        <span className="book-icon">
+                          {notification.isRecommendation ? "🌟" : "📖"}
+                        </span>
                         <span className="book-title">
                           {notification.bookTitle}
                         </span>
                       </div>
+                      {notification.isRecommendation &&
+                        notification.bookData && (
+                          <div className="recommendation-preview">
+                            {notification.bookData.volumeInfo?.imageLinks
+                              ?.thumbnail && (
+                              <img
+                                src={
+                                  notification.bookData.volumeInfo.imageLinks
+                                    .thumbnail
+                                }
+                                alt={
+                                  notification.bookData.volumeInfo?.title ||
+                                  "Book cover"
+                                }
+                                className="recommendation-thumbnail"
+                              />
+                            )}
+                            <div className="recommendation-details">
+                              <p className="recommendation-author">
+                                {notification.bookData.volumeInfo
+                                  ?.authors?.[0] || "Unknown author"}
+                              </p>
+                              <p className="recommendation-category">
+                                {notification.bookData.volumeInfo
+                                  ?.categories?.[0] || ""}
+                              </p>
+                            </div>
+                          </div>
+                        )}
                     </div>
                     <div className="notification-meta">
                       <span className="notification-time">
