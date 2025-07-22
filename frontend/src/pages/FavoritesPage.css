@@ -40,6 +40,13 @@
   padding: 60px 20px;
   color: #666;
 }
+.favorites-previous{
+  background-color: red;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  height : 30px;
+}
 
 .no-user-message p,
 .loading-message p {

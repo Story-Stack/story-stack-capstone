@@ -198,7 +198,7 @@ function ShelfPage() {
     <div className="shelf-page">
       <Sidebar />
       <div className="shelf-content">
-        <button onClick={() => navigate("/dashboard")}>❮ Previous</button>
+        <button className="shelf-previous" onClick={() => navigate("/dashboard")}>❮ Previous</button>
         <div className="shelf-header">
           <h1>My Shelf ({shelf.length})</h1>
           <p>Books you've added to your shelf collection</p>

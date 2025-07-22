@@ -27,6 +27,8 @@ function Register() {
     if (error) {
       setError(error.message);
     } else {
+      // Set a flag to indicate this is a new account
+      localStorage.setItem("isNewAccount", "true");
       setSuccess("Success! Check your email for the confirmation link.");
     }
 
@@ -35,6 +37,10 @@ function Register() {
 
   const handleGoogleSignUp = async () => {
     setError("");
+
+    // Set a flag to indicate this is a new account
+    localStorage.setItem("isNewAccount", "true");
+
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
@@ -44,6 +50,8 @@ function Register() {
 
     if (error) {
       setError(error.message);
+      // Remove the flag if there was an error
+      localStorage.removeItem("isNewAccount");
     }
   };
 

@@ -198,7 +198,7 @@ function FavoritesPage() {
     <div className="favorites-page">
       <Sidebar />
       <div className="favorites-content">
-        <button onClick={() => navigate("/dashboard")}>❮ Previous</button>
+        <button className="favorites-previous" onClick={() => navigate("/dashboard")}>❮ Previous</button>
 
         <div className="favorites-header">
           <h1>My Favorites ({favorites.length})</h1>

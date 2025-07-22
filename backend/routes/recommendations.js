@@ -82,60 +82,103 @@ router.get("/:userId", async (req, res) => {
       }
     }
 
-    // If sendNotification is true, fetch a book from Google Books API and create a notification
+    // If sendNotification is true, find a book the user hasn't seen before
     if (sendNotification) {
       try {
         // Get the top category
         const topCategory = topCategories[0].category;
 
-        // Fetch a book from Google Books API
+        // Get user's favorites and shelf items to avoid recommending books they already have
+        const [favorites, shelfItems, previousRecommendations] =
+          await Promise.all([
+            prisma.favorite.findMany({
+              where: { user_id: userIdInt },
+              select: { book_id: true },
+            }),
+            prisma.shelfItem.findMany({
+              where: { user_id: userIdInt },
+              select: { book_id: true },
+            }),
+            prisma.notification.findMany({
+              where: {
+                user_id: userIdInt,
+                is_recommendation: true,
+              },
+              select: { book_id: true },
+            }),
+          ]);
+
+        // Create a set of book IDs the user has already interacted with
+        const existingBookIds = new Set([
+          ...favorites.map((f) => f.book_id),
+          ...shelfItems.map((s) => s.book_id),
+          ...previousRecommendations.map((r) => r.book_id).filter(Boolean),
+        ]);
+
+        // Fetch multiple books to increase chances of finding a new one
         const searchQuery = `subject:${topCategory}`;
         const googleBooksResponse = await fetch(
           `https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(
             searchQuery
-          )}&maxResults=1&orderBy=relevance`
+          )}&maxResults=10&orderBy=relevance`
         );
 
         if (googleBooksResponse.ok) {
           const data = await googleBooksResponse.json();
           if (data.items && data.items.length > 0) {
-            const book = data.items[0];
-
-            // Find or create a channel for this book
-            let channel;
-            const existingChannel = await prisma.channel.findFirst({
-              where: { book_id: book.id },
-            });
-
-            if (existingChannel) {
-              channel = existingChannel;
-            } else {
-              // Create a new channel for this book
-              channel = await prisma.channel.create({
-                data: {
-                  name: book.volumeInfo?.title || "Book Discussion",
-                  book_id: book.id,
-                  book_title: book.volumeInfo?.title || "Unknown Book",
-                  book_data: book,
-                },
-              });
-            }
-
-            // Create a recommendation notification
-            await fetch(
-              `http://localhost:3000/api/notifications/recommendation`,
-              {
-                method: "POST",
-                headers: {
-                  "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                  userId: supabaseId,
-                  bookData: book,
-                  channelId: channel.id,
-                }),
-              }
+            // Find a book the user hasn't seen before
+            const newBook = data.items.find(
+              (book) => !existingBookIds.has(book.id)
             );
+
+            // If we found a new book, create a notification
+            if (newBook) {
+              console.log(
+                `Found new book recommendation: ${newBook.volumeInfo?.title}`
+              );
+
+              // Find or create a channel for this book
+              let channel;
+              const existingChannel = await prisma.channel.findFirst({
+                where: { book_id: newBook.id },
+              });
+
+              if (existingChannel) {
+                channel = existingChannel;
+              } else {
+                // Create a new channel for this book
+                channel = await prisma.channel.create({
+                  data: {
+                    name: newBook.volumeInfo?.title || "Book Discussion",
+                    book_id: newBook.id,
+                    book_title: newBook.volumeInfo?.title || "Unknown Book",
+                    book_data: newBook,
+                  },
+                });
+              }
+
+              // Create a recommendation notification
+              await fetch(
+                `http://localhost:3000/api/notifications/recommendation`,
+                {
+                  method: "POST",
+                  headers: {
+                    "Content-Type": "application/json",
+                  },
+                  body: JSON.stringify({
+                    userId: supabaseId,
+                    bookData: newBook,
+                    channelId: channel.id,
+                  }),
+                }
+              );
+
+              console.log(
+                `Created recommendation notification for ${newBook.volumeInfo?.title}`
+              );
+            } else {
+              console.log("No new books found to recommend");
+            }
           }
         }
       } catch (error) {
