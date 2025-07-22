@@ -3,9 +3,10 @@ import Search from "../Search";
 import BookList from "../BookList";
 import Sidebar from "../components/FavoritesSidebar";
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams, useLocation } from "react-router-dom";
 import { supabase } from "../../utils/supabaseClient";
 import { useAuth } from "../App";
+import BookModal from "../BookModal";
 
 function Dashboard() {
   // books is the list of results received from the Search component
@@ -13,8 +14,39 @@ function Dashboard() {
   const [books, setBooks] = useState([]);
   const [isShowingHotPicks, setIsShowingHotPicks] = useState(true);
   const [joinedDiscussions, setJoinedDiscussions] = useState([]);
+  const [selectedBook, setSelectedBook] = useState(null);
+  const [showModal, setShowModal] = useState(false);
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { bookId } = useParams(); // Get bookId from URL if coming from notification
+  const location = useLocation();
+  const searchParams = new URLSearchParams(location.search);
+  // Get comment ID from URL and pass it to the BookModal component
+  const highlightedCommentId = searchParams.get("comment");
+
+  // Fetch book details if coming from a notification
+  useEffect(() => {
+    if (bookId) {
+      fetchBookDetails(bookId);
+    }
+  }, [bookId]);
+
+  const fetchBookDetails = async (id) => {
+    try {
+      const apiKey = import.meta.env.VITE_GOOGLE_BOOKS_API_KEY;
+      const response = await fetch(
+        `https://www.googleapis.com/books/v1/volumes/${id}?key=${apiKey}`
+      );
+
+      if (response.ok) {
+        const bookData = await response.json();
+        setSelectedBook(bookData);
+        setShowModal(true);
+      }
+    } catch (error) {
+      console.error("Error fetching book details:", error);
+    }
+  };
 
   // Popular book categories that rotate
   const hotPicksCategories = [
@@ -242,6 +274,17 @@ function Dashboard() {
     return joinedDiscussions.some((item) => item.id === bookId);
   };
 
+  // Handle closing the book modal
+  const handleCloseModal = () => {
+    setShowModal(false);
+    setSelectedBook(null);
+
+    // If we came from a notification, redirect to the dashboard without the comment parameter
+    if (bookId) {
+      navigate("/dashboard", { replace: true });
+    }
+  };
+
   return (
     <div className="dashboard">
       <div className="dashboard-header">
@@ -254,11 +297,20 @@ function Dashboard() {
             Logout
           </button>
         ) : (
-          <div
-            style={{ width: "80px" }}
-          ></div>
+          <div style={{ width: "80px" }}></div>
         )}
       </div>
+
+      {/* Book Modal for comment notifications */}
+      {showModal && selectedBook && (
+        <BookModal
+          book={selectedBook}
+          onClose={handleCloseModal}
+          onJoinDiscussion={handleJoinDiscussion}
+          isJoined={isBookJoined(selectedBook.id)}
+          highlightedCommentId={highlightedCommentId}
+        />
+      )}
 
       <Search onResults={handleResults} />
 

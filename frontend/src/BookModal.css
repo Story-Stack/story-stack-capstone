@@ -294,12 +294,32 @@
 }
 
 /* Prevent excessive nesting from making content too small */
+/* Prevent excessive nesting from making content too small */
 .replies-container
   .replies-container
   .replies-container
   .replies-container
   .reply {
   font-size: 0.85em; /* Don't make text any smaller beyond this point */
+}
+
+/* Highlighted comment styles */
+.highlighted-comment {
+  animation: highlight-pulse 3s ease-in-out;
+  border: 2px solid #007bff;
+  box-shadow: 0 0 10px rgba(0, 123, 255, 0.5);
+}
+
+@keyframes highlight-pulse {
+  0% {
+    background-color: rgba(0, 123, 255, 0.3);
+  }
+  50% {
+    background-color: rgba(0, 123, 255, 0.1);
+  }
+  100% {
+    background-color: transparent;
+  }
 }
 
 .replying-to {

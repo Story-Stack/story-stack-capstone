@@ -113,10 +113,18 @@ router.post("/", async (req, res) => {
     };
 
     // If parentId is provided, add it to the comment data
+    let parentComment = null;
+    let parentCommentUser = null;
+
     if (parentId) {
+      console.log("Reply to comment requested with parentId:", parentId);
+
       // Verify the parent comment exists
-      const parentComment = await prisma.comment.findUnique({
+      parentComment = await prisma.comment.findUnique({
         where: { id: parentId },
+        include: {
+          user: true, // Include the user who made the original comment
+        },
       });
 
       if (!parentComment) {
@@ -124,7 +132,12 @@ router.post("/", async (req, res) => {
       }
 
       commentData.parentId = parentId;
-      console.log("Creating reply to comment:", parentId);
+      parentCommentUser = parentComment.user;
+      console.log("Found parent comment:", parentComment.id);
+      console.log("Parent comment user:", {
+        id: parentCommentUser.id,
+        email: parentCommentUser.email
+      });
     }
 
     // Create comment
@@ -142,6 +155,91 @@ router.post("/", async (req, res) => {
         parent: true,
       },
     });
+
+    // Create notification if this is a reply to someone else's comment
+    if (
+      parentComment &&
+      parentCommentUser &&
+      parentCommentUser.id !== parseInt(userId)
+    ) {
+      try {
+        console.log("Creating notification for reply to comment");
+        console.log("Parent comment user ID:", parentCommentUser.id);
+        console.log("Current user ID:", userId);
+
+        // Get or create a general channel for book discussions
+        let channel = await prisma.channel.findFirst({
+          where: {
+            book_id: book_id,
+          },
+        });
+
+        if (!channel) {
+          console.log("No channel found for book, creating one");
+          // Create a new channel for this book
+          channel = await prisma.channel.create({
+            data: {
+              name: `${book_title} Discussion`,
+              book_id: book_id,
+              book_title: book_title,
+              book_data: book_data,
+            },
+          });
+          console.log("Created new channel:", channel.id);
+        } else {
+          console.log("Using existing channel:", channel.id);
+        }
+
+        // Format the notification content
+        const commenterName =
+          user.first_name || user.email.split("@")[0] || "Someone";
+        const notificationContent = `${commenterName} replied to your comment on ${book_title}: "${content.substring(
+          0,
+          50
+        )}${content.length > 50 ? "..." : ""}"`;
+
+
+        console.log("Creating notification with data:", {
+          user_id: parentCommentUser.id,
+          channel_id: channel.id,
+          comment_id: comment.id,
+          book_id: book_id,
+          content: notificationContent
+        });
+
+        // Create notification for the parent comment author
+        const notification = await prisma.notification.create({
+          data: {
+            user_id: parentCommentUser.id,
+            channel_id: channel.id,
+            comment_id: comment.id,
+            book_id: book_id,
+            content: notificationContent,
+            is_read: false,
+          },
+        });
+
+        console.log("Created notification for comment reply:", notification.id);
+      } catch (notificationError) {
+        // Log the error but don't fail the comment creation
+        console.error(
+          "Error creating notification for comment reply:",
+          notificationError
+        );
+        console.error("Error details:", {
+          name: notificationError.name,
+          message: notificationError.message,
+          stack: notificationError.stack,
+        });
+      }
+    } else {
+      console.log("Not creating notification because:", {
+        hasParentComment: !!parentComment,
+        hasParentCommentUser: !!parentCommentUser,
+        isSelfReply:
+          parentCommentUser && parentCommentUser.id === parseInt(userId),
+      });
+    }
 
     res.status(201).json(comment);
   } catch (error) {

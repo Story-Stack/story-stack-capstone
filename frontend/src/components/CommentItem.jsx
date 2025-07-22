@@ -1,4 +1,5 @@
 // No need to import React with modern JSX transform
+import { useEffect, useRef } from "react";
 
 // Recursive comment component that can render comments at any nesting level
 const CommentItem = ({
@@ -6,7 +7,38 @@ const CommentItem = ({
   formatTime,
   handleReply,
   nestingLevel = 0,
+  highlightedCommentId,
+  registerRef,
 }) => {
+  const commentRef = useRef(null);
+
+  // Register this comment's ref with the parent component
+  useEffect(() => {
+    if (registerRef && commentRef.current) {
+      registerRef(comment.id, commentRef);
+    }
+  }, [comment.id, registerRef]);
+
+  // Scroll to this comment if it's highlighted
+  useEffect(() => {
+    if (highlightedCommentId === comment.id && commentRef.current) {
+      commentRef.current.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+      });
+      // Add a temporary highlight class
+      commentRef.current.classList.add("highlighted-comment");
+
+      // Remove the highlight class after a few seconds
+      const timer = setTimeout(() => {
+        if (commentRef.current) {
+          commentRef.current.classList.remove("highlighted-comment");
+        }
+      }, 3000);
+
+      return () => clearTimeout(timer);
+    }
+  }, [highlightedCommentId, comment.id]);
   // Calculate class names based on nesting level
   const getReplyContainerClass = () => {
     return `replies-container${nestingLevel > 0 ? " nested-replies" : ""}${
@@ -66,7 +98,10 @@ const CommentItem = ({
   };
 
   return (
-    <div className={nestingLevel === 0 ? "comment" : getReplyClass()}>
+    <div
+      ref={commentRef}
+      className={nestingLevel === 0 ? "comment" : getReplyClass()}
+    >
       <div className="comment-header">
         <div className="comment-author">
           <div className={getAvatarClass()}>
@@ -96,6 +131,8 @@ const CommentItem = ({
               formatTime={formatTime}
               handleReply={handleReply}
               nestingLevel={nestingLevel + 1}
+              highlightedCommentId={highlightedCommentId}
+              registerRef={registerRef}
             />
           ))}
         </div>

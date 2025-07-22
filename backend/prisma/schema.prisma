@@ -9,20 +9,20 @@ datasource db {
 }
 
 model User {
-  id          Int        @id @default(autoincrement())
-  first_name  String?    @db.VarChar(255)
-  last_name   String?    @db.VarChar(255)
-  email       String     @unique @db.VarChar(255)
-  supabase_id String     @unique @db.VarChar(255)
-  created_at  DateTime   @default(now())
-  updated_at  DateTime   @updatedAt
-  favorites   Favorite[]
-  shelf_items ShelfItem[]
-  messages    Message[]
-  comments    Comment[]
+  id              Int                 @id @default(autoincrement())
+  first_name      String?             @db.VarChar(255)
+  last_name       String?             @db.VarChar(255)
+  email           String              @unique @db.VarChar(255)
+  supabase_id     String              @unique @db.VarChar(255)
+  created_at      DateTime            @default(now())
+  updated_at      DateTime            @updatedAt
+  favorites       Favorite[]
+  shelf_items     ShelfItem[]
+  messages        Message[]
+  comments        Comment[]
   joined_channels UserChannel[]
   category_scores UserCategoryScore[]
-  notifications Notification[]
+  notifications   Notification[]
 }
 
 model Favorite {
@@ -30,7 +30,7 @@ model Favorite {
   user_id    Int
   book_id    String   @db.VarChar(255)
   book_title String   @db.VarChar(500)
-  book_data  Json?    // Store complete book data from Google Books API
+  book_data  Json? // Store complete book data from Google Books API
   created_at DateTime @default(now())
 
   user User @relation(fields: [user_id], references: [id], onDelete: Cascade)
@@ -43,7 +43,7 @@ model ShelfItem {
   user_id    Int
   book_id    String   @db.VarChar(255)
   book_title String   @db.VarChar(500)
-  book_data  Json?    // Store complete book data from Google Books API
+  book_data  Json? // Store complete book data from Google Books API
   created_at DateTime @default(now())
 
   user User @relation(fields: [user_id], references: [id], onDelete: Cascade)
@@ -52,16 +52,16 @@ model ShelfItem {
 }
 
 model Channel {
-  id          String    @id @default(uuid())
-  name        String    @db.VarChar(255)
-  book_id     String    @db.VarChar(255)  // Google Books API ID
-  book_title  String    @db.VarChar(500)
-  book_data   Json?     // Store complete book data
-  created_at  DateTime  @default(now())
-  updated_at  DateTime  @updatedAt
+  id         String   @id @default(uuid())
+  name       String   @db.VarChar(255)
+  book_id    String   @db.VarChar(255) // Google Books API ID
+  book_title String   @db.VarChar(500)
+  book_data  Json? // Store complete book data
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
 
-  messages    Message[]
-  members     UserChannel[]
+  messages      Message[]
+  members       UserChannel[]
   notifications Notification[]
 }
 
@@ -71,48 +71,48 @@ model UserChannel {
   channel_id String
   joined_at  DateTime @default(now())
 
-  user       User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
-  channel    Channel  @relation(fields: [channel_id], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  channel Channel @relation(fields: [channel_id], references: [id], onDelete: Cascade)
 
   @@unique([user_id, channel_id])
 }
 
 model Message {
-  id         String   @id @default(uuid())
-  content    String
-  createdAt  DateTime @default(now())
+  id        String   @id @default(uuid())
+  content   String
+  createdAt DateTime @default(now())
 
   // Relations
-  user       User     @relation(fields: [userId], references: [id])
-  userId     Int      // Changed from String to Int to match User.id
+  user   User @relation(fields: [userId], references: [id])
+  userId Int // Changed from String to Int to match User.id
 
-  channel    Channel  @relation(fields: [channelId], references: [id])
-  channelId  String
+  channel   Channel @relation(fields: [channelId], references: [id])
+  channelId String
 
   // Reply functionality
-  parentId   String?  // ID of the parent message (if this is a reply)
-  parent     Message? @relation("MessageReplies", fields: [parentId], references: [id], onDelete: SetNull)
-  replies    Message[] @relation("MessageReplies")
+  parentId String? // ID of the parent message (if this is a reply)
+  parent   Message?  @relation("MessageReplies", fields: [parentId], references: [id], onDelete: SetNull)
+  replies  Message[] @relation("MessageReplies")
 
   notifications Notification[]
 }
 
 model Comment {
-  id          String    @id @default(uuid())
-  content     String
-  book_id     String    @db.VarChar(255)  // Google Books API ID
-  book_title  String    @db.VarChar(500)
-  book_data   Json?     // Store complete book data
-  createdAt   DateTime  @default(now())
+  id         String   @id @default(uuid())
+  content    String
+  book_id    String   @db.VarChar(255) // Google Books API ID
+  book_title String   @db.VarChar(500)
+  book_data  Json? // Store complete book data
+  createdAt  DateTime @default(now())
 
   // Relations
-  user        User      @relation(fields: [userId], references: [id])
-  userId      Int
+  user   User @relation(fields: [userId], references: [id])
+  userId Int
 
   // Reply functionality
-  parentId    String?   // ID of the parent comment (if this is a reply)
-  parent      Comment?  @relation("CommentReplies", fields: [parentId], references: [id], onDelete: SetNull)
-  replies     Comment[] @relation("CommentReplies")
+  parentId String? // ID of the parent comment (if this is a reply)
+  parent   Comment?  @relation("CommentReplies", fields: [parentId], references: [id], onDelete: SetNull)
+  replies  Comment[] @relation("CommentReplies")
 }
 
 model UserCategoryScore {
@@ -129,15 +129,17 @@ model UserCategoryScore {
 }
 
 model Notification {
-  id           String   @id @default(uuid())
-  user_id      Int
-  channel_id   String
-  message_id   String?
-  content      String
-  is_read      Boolean  @default(false)
-  created_at   DateTime @default(now())
+  id         String   @id @default(uuid())
+  user_id    Int
+  channel_id String
+  message_id String?
+  comment_id String? // New field for comment notifications
+  book_id    String? // Book ID for comment notifications
+  content    String
+  is_read    Boolean  @default(false)
+  created_at DateTime @default(now())
 
-  user         User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
-  channel      Channel  @relation(fields: [channel_id], references: [id], onDelete: Cascade)
-  message      Message? @relation(fields: [message_id], references: [id], onDelete: SetNull)
+  user    User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  channel Channel  @relation(fields: [channel_id], references: [id], onDelete: Cascade)
+  message Message? @relation(fields: [message_id], references: [id], onDelete: SetNull)
 }

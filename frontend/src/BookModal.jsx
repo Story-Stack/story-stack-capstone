@@ -1,15 +1,35 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { supabase } from "../utils/supabaseClient";
+import { useLocation } from "react-router-dom";
 import CommentItem from "./components/CommentItem";
+import { refreshNotificationsEvent } from "./components/NotificationBell";
 import "./BookModal.css";
 
-function BookModal({ book, onClose, onJoinDiscussion, isJoined }) {
+function BookModal({
+  book,
+  onClose,
+  onJoinDiscussion,
+  isJoined,
+  highlightedCommentId,
+}) {
   const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState("");
   const [showCommentForm, setShowCommentForm] = useState(false);
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(false);
   const [replyingTo, setReplyingTo] = useState(null);
+  const [highlightedCommentIdState, setHighlightedCommentIdState] = useState(
+    highlightedCommentId || null
+  );
+
+  // Update state when prop changes
+  useEffect(() => {
+    if (highlightedCommentId) {
+      setHighlightedCommentIdState(highlightedCommentId);
+    }
+  }, [highlightedCommentId]);
+  const location = useLocation();
+  const commentsRef = useRef({});
 
   const {
     title,
@@ -27,7 +47,19 @@ function BookModal({ book, onClose, onJoinDiscussion, isJoined }) {
   useEffect(() => {
     getCurrentUser();
     fetchComments();
-  }, [book.id]);
+
+    // Check if we need to highlight a specific comment (from notification)
+    const searchParams = new URLSearchParams(location.search);
+    const commentId = searchParams.get("comment");
+    if (commentId) {
+      setHighlightedCommentIdState(commentId);
+    }
+  }, [book.id, location.search]);
+
+  // Function to register comment refs for scrolling
+  const registerCommentRef = (id, ref) => {
+    commentsRef.current[id] = ref;
+  };
 
   const getCurrentUser = async () => {
     const {
@@ -108,6 +140,12 @@ function BookModal({ book, onClose, onJoinDiscussion, isJoined }) {
 
         // After creating a reply, fetch all comments again to get the updated structure
         await fetchComments();
+
+        // Trigger notification refresh for all components
+        window.dispatchEvent(refreshNotificationsEvent);
+        console.log(
+          "Dispatched refreshNotificationsEvent after adding comment"
+        );
 
         setNewComment("");
         setShowCommentForm(false);
@@ -319,6 +357,8 @@ function BookModal({ book, onClose, onJoinDiscussion, isJoined }) {
                   comment={comment}
                   formatTime={formatTime}
                   handleReply={handleReply}
+                  highlightedCommentId={highlightedCommentIdState}
+                  registerRef={registerCommentRef}
                 />
               ))}
             </div>
