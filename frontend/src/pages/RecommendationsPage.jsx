@@ -11,20 +11,52 @@ function RecommendationsPage() {
   const [error, setError] = useState(null);
   const { user } = useAuth();
 
+  // Track when recommendations were last checked
+  const [lastChecked, setLastChecked] = useState(() => {
+    // Try to get the last checked timestamp from localStorage
+    const stored = localStorage.getItem("lastRecommendationCheck");
+    return stored ? new Date(stored) : null;
+  });
+
   useEffect(() => {
     if (user) {
-      loadRecommendations();
+      const now = new Date();
+      let shouldNotify = false;
+
+      // Check if it's been at least 24 hours since the last check
+      // or if this is the first time checking
+      if (!lastChecked || now - lastChecked > 24 * 60 * 60 * 1000) {
+        shouldNotify = true;
+        setLastChecked(now);
+        localStorage.setItem("lastRecommendationCheck", now.toISOString());
+      }
+
+      // For new accounts, always trigger a recommendation notification
+      const isNewAccount = localStorage.getItem("isNewAccount") === "true";
+      if (isNewAccount) {
+        console.log(
+          "New account detected, triggering recommendation notification"
+        );
+        shouldNotify = true;
+        localStorage.removeItem("isNewAccount"); // Clear the flag after use
+      }
+
+      loadRecommendations(shouldNotify);
     }
   }, [user]);
 
-  const loadRecommendations = async () => {
+  const loadRecommendations = async (withNotification = false) => {
     if (!user) return;
 
     try {
       setLoading(true);
       setError(null);
 
-      const response = await fetch(`/api/recommendations/${user.id}`);
+      // Add the notify parameter if requested
+      const notifyParam = withNotification ? "?notify=true" : "";
+      const response = await fetch(
+        `/api/recommendations/${user.id}${notifyParam}`
+      );
 
       if (response.ok) {
         const data = await response.json();
@@ -158,11 +190,13 @@ function RecommendationsPage() {
       <div className="recommendations-content">
         <div className="recommendations-header">
           <h1>Recommended Books For You!</h1>
-          {recommendations.length > 0 && (
-            <button className="shuffle-button" onClick={handleShuffle}>
-              <span className="shuffle-icon">🔀</span> Shuffle
-            </button>
-          )}
+          <div className="recommendations-actions">
+            {recommendations.length > 0 && (
+              <button className="shuffle-button" onClick={handleShuffle}>
+                <span className="shuffle-icon">🔀</span> Shuffle
+              </button>
+            )}
+          </div>
         </div>
         {recommendations.length === 0 ? (
           <div className="no-recommendations">

@@ -43,6 +43,9 @@ router.get("/user/:userId", async (req, res) => {
       },
     });
 
+    // Debug: Check if is_recommendation field exists in the database
+    console.log("First notification sample:", notifications[0]);
+
     // Debug: Log raw notification data
     console.log(
       "Raw notification data:",
@@ -171,6 +174,19 @@ router.post("/recommendation", async (req, res) => {
         book_data: bookData,
       },
     });
+
+    console.log("Created recommendation notification:", notification);
+
+    // Trigger a refresh of notifications for the user
+    // This is a workaround to ensure the frontend gets the new notification
+    try {
+      await fetch(`http://localhost:3000/api/notifications/user/${userId}`, {
+        method: "GET",
+      });
+      console.log("Triggered notification refresh for user:", userId);
+    } catch (refreshError) {
+      console.error("Error refreshing notifications:", refreshError);
+    }
 
     res.status(201).json({
       id: notification.id,

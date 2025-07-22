@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useAuth } from "../App";
 import { useNavigate } from "react-router-dom";
 import "./NotificationBell.css";
@@ -8,8 +8,10 @@ export const refreshNotificationsEvent = new Event("refreshNotifications");
 
 function NotificationBell() {
   const [notifications, setNotifications] = useState([]);
-  const [unreadCount, setUnreadCount] = useState(0);
   const [showDropdown, setShowDropdown] = useState(false);
+  const [lastNotificationCount, setLastNotificationCount] = useState(0);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const bellRef = useRef(null);
   const { user } = useAuth();
   const navigate = useNavigate();
 
@@ -25,28 +27,113 @@ function NotificationBell() {
 
       if (response.ok) {
         const data = await response.json();
-        console.log("Notifications received:", data.length);
-        console.log("Notification data:", data);
+        console.log("Raw notifications data:", data);
 
-        // Check if any notifications have isRead set to undefined and fix it
+        // Store the previous notification count before updating
+        const prevCount = notifications.length;
+
+        // Check if any notifications have isRead or isRecommendation set to undefined and fix it
         const fixedData = data.map((notification) => ({
           ...notification,
           isRead:
             notification.isRead === undefined ? false : notification.isRead,
+          isRecommendation:
+            notification.isRecommendation === undefined
+              ? false
+              : notification.isRecommendation,
         }));
 
+        console.log("Fixed notifications data:", fixedData);
+
+        // Count unread notifications
+        const newUnreadCount = fixedData.filter((n) => !n.isRead).length;
+
+        // Update state
         setNotifications(fixedData);
-        setUnreadCount(fixedData.filter((n) => !n.isRead).length);
+        setUnreadCount(newUnreadCount);
+
+        // If this is not the first load and we have new notifications
+        if (prevCount > 0 && data.length > prevCount) {
+          console.log(
+            `New notifications detected! (${data.length - prevCount} new)`
+          );
+
+          // Animate the bell
+          if (bellRef.current) {
+            bellRef.current.classList.add("bell-animation");
+            setTimeout(() => {
+              if (bellRef.current) {
+                bellRef.current.classList.remove("bell-animation");
+              }
+            }, 2000);
+          }
+
+          // Update the last notification count
+          setLastNotificationCount(data.length);
+        }
       } else {
         console.error("Failed to fetch notifications");
       }
     } catch (error) {
       console.error("Error fetching notifications:", error);
     }
-  }, [user]);
+  }, [user, notifications.length]);
 
+  // Check for new notifications
+  useEffect(() => {
+    // Initialize lastNotificationCount if it's 0 and we have notifications
+    if (lastNotificationCount === 0 && notifications.length > 0) {
+      setLastNotificationCount(notifications.length);
+      return;
+    }
+
+    // Check if we have new notifications
+    if (notifications.length > lastNotificationCount) {
+      console.log(
+        `New notifications detected! Previous: ${lastNotificationCount}, Current: ${notifications.length}`
+      );
+
+      // Animate the bell
+      if (bellRef.current) {
+        bellRef.current.classList.add("bell-animation");
+        setTimeout(() => {
+          if (bellRef.current) {
+            bellRef.current.classList.remove("bell-animation");
+          }
+        }, 2000);
+      }
+
+      // Update the last count
+      setLastNotificationCount(notifications.length);
+
+      // Show a browser notification if supported
+      if (Notification.permission === "granted") {
+        const unreadNotifications = notifications.filter((n) => !n.isRead);
+        if (unreadNotifications.length > 0) {
+          const latestNotification = unreadNotifications[0];
+          new Notification("New Book Recommendation", {
+            body: latestNotification.content,
+            icon: "/favicon.ico",
+          });
+        }
+      }
+    }
+  }, [notifications.length, lastNotificationCount]);
+
+  // Function to manually trigger a notification refresh
+  const triggerNotificationRefresh = useCallback(() => {
+    if (user) {
+      console.log("Manually triggering notification refresh");
+      fetchNotifications();
+    }
+  }, [user, fetchNotifications]);
+
+  // Expose the refresh function globally
   useEffect(() => {
     if (user) {
+      // Add the function to the window object so it can be called from anywhere
+      window.triggerNotificationRefresh = triggerNotificationRefresh;
+
       fetchNotifications();
 
       // Set up polling to check for new notifications every 10 seconds (more frequent)
@@ -55,12 +142,21 @@ function NotificationBell() {
       // Add event listener for manual refresh
       window.addEventListener("refreshNotifications", fetchNotifications);
 
+      // Request notification permission
+      if (
+        Notification.permission !== "granted" &&
+        Notification.permission !== "denied"
+      ) {
+        Notification.requestPermission();
+      }
+
       return () => {
         clearInterval(interval);
         window.removeEventListener("refreshNotifications", fetchNotifications);
+        delete window.triggerNotificationRefresh;
       };
     }
-  }, [user, fetchNotifications]);
+  }, [user, fetchNotifications, triggerNotificationRefresh]);
 
   const handleBellClick = () => {
     setShowDropdown(!showDropdown);
@@ -137,7 +233,11 @@ function NotificationBell() {
 
   return (
     <div className="notification-bell-container">
-      <div className="notification-bell" onClick={handleBellClick}>
+      <div
+        className="notification-bell"
+        onClick={handleBellClick}
+        ref={bellRef}
+      >
         <i className="fas fa-bell"></i>
         {unreadCount > 0 && (
           <span className="notification-badge">{unreadCount}</span>
@@ -162,9 +262,18 @@ function NotificationBell() {
                   key={notification.id}
                   className={`notification-item ${
                     notification.isRead ? "read" : "unread"
-                  }`}
+                  } ${notification.isRecommendation ? "recommendation" : ""}`}
                   onClick={() => handleNotificationClick(notification)}
                 >
+                  {/* Check if this is a recommendation notification based on content */}
+                  {(notification.isRecommendation ||
+                    (notification.content &&
+                      notification.content.includes("enjoy reading") &&
+                      notification.content.includes(
+                        "based on your preferences"
+                      ))) && (
+                    <div className="recommendation-badge">📚 New Book</div>
+                  )}
                   <p>{notification.content}</p>
                   <span className="notification-time">
                     {new Date(notification.createdAt).toLocaleTimeString([], {
