@@ -4,11 +4,23 @@ const { PrismaClient } = require("../generated/prisma");
 const router = express.Router();
 const prisma = new PrismaClient();
 
-const scoreWeights = {
+// Base weights for different interaction types
+const baseWeights = {
   favorite: 5,
   shelf: 4,
   joinChannel: 3,
   comment: 2,
+};
+
+// Total interaction points per user
+const TOTAL_INTERACTION_POINTS = 100;
+
+// Activity thresholds for scaling total points
+const ACTIVITY_THRESHOLDS = {
+  low: 10, // Up to 10 interactions: base 100 points
+  medium: 50, // 11-50 interactions: 125 points
+  high: 200, // 51-200 interactions: 150 points
+  veryHigh: 500, // 201+ interactions: 200 points
 };
 
 // Update category scores for a user
@@ -111,6 +123,47 @@ router.post("/recalculate/:userId", async (req, res) => {
       }),
     ]);
 
+    // Calculate raw interaction counts
+    const interactionCounts = {
+      favorite: favorites.length,
+      shelf: shelfItems.length,
+      comment: comments.length,
+      joinChannel: channels.length,
+    };
+
+    // Calculate total interactions to determine scaling factor
+    const totalInteractions = Object.values(interactionCounts).reduce(
+      (sum, count) => sum + count,
+      0
+    );
+
+    // Determine total points based on activity level
+    let totalPoints = TOTAL_INTERACTION_POINTS;
+    if (totalInteractions > ACTIVITY_THRESHOLDS.veryHigh) {
+      totalPoints = 200;
+    } else if (totalInteractions > ACTIVITY_THRESHOLDS.high) {
+      totalPoints = 150;
+    } else if (totalInteractions > ACTIVITY_THRESHOLDS.medium) {
+      totalPoints = 125;
+    }
+
+    // Calculate dynamic weights based on interaction counts
+    const dynamicWeights = {};
+    Object.entries(baseWeights).forEach(([type, baseWeight]) => {
+      const count = interactionCounts[type];
+      if (count === 0) {
+        dynamicWeights[type] = 0;
+      } else {
+        // Calculate the proportion of total points this interaction type should get
+        const typeImportance =
+          baseWeight /
+          Object.values(baseWeights).reduce((sum, w) => sum + w, 0);
+        const typePoints = totalPoints * typeImportance;
+        // Distribute points evenly across all interactions of this type
+        dynamicWeights[type] = typePoints / count;
+      }
+    });
+
     // Calculate scores
     const categoryScores = {};
 
@@ -134,29 +187,29 @@ router.post("/recalculate/:userId", async (req, res) => {
       return [];
     };
 
-    // Add points for favorites (5 points each)
+    // Add points for favorites
     favorites.forEach((book) =>
-      addPoints(getBookCategories(book), scoreWeights.favorite)
+      addPoints(getBookCategories(book), dynamicWeights.favorite)
     );
 
-    // Add points for shelf items (4 points each)
+    // Add points for shelf items
     shelfItems.forEach((book) =>
-      addPoints(getBookCategories(book), scoreWeights.shelf)
+      addPoints(getBookCategories(book), dynamicWeights.shelf)
     );
 
-    // Add points for comments (2 points each)
+    // Add points for comments
     comments.forEach((comment) => {
       const bookData = comment.book_data || {};
-      addPoints(getBookCategories(bookData), scoreWeights.comment);
+      addPoints(getBookCategories(bookData), dynamicWeights.comment);
     });
 
-    // Add points for channels (3 points each)
+    // Add points for channels
     channels.forEach((userChannel) => {
       const channel = userChannel.channel;
       if (channel.book_data?.volumeInfo?.categories) {
         addPoints(
           channel.book_data.volumeInfo.categories,
-          scoreWeights.joinChannel
+          dynamicWeights.joinChannel
         );
       }
     });
@@ -191,5 +244,76 @@ router.post("/recalculate/:userId", async (req, res) => {
   }
 });
 
+router.get("/:userId/weights", async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const userIdInt = parseInt(userId);
+
+    // Fetch user's data to calculate interaction counts
+    const [favorites, shelfItems, comments, channels] = await Promise.all([
+      prisma.favorite.findMany({ where: { user_id: userIdInt } }),
+      prisma.shelfItem.findMany({ where: { user_id: userIdInt } }),
+      prisma.comment.findMany({ where: { userId: userIdInt } }),
+      prisma.userChannel.findMany({
+        where: { user_id: userIdInt },
+        include: { channel: true },
+      }),
+    ]);
+
+    // Calculate raw interaction counts
+    const interactionCounts = {
+      favorite: favorites.length,
+      shelf: shelfItems.length,
+      comment: comments.length,
+      joinChannel: channels.length,
+    };
+
+    // Calculate total interactions to determine scaling factor
+    const totalInteractions = Object.values(interactionCounts).reduce(
+      (sum, count) => sum + count,
+      0
+    );
+
+    // Determine total points based on activity level
+    let totalPoints = TOTAL_INTERACTION_POINTS;
+    if (totalInteractions > ACTIVITY_THRESHOLDS.veryHigh) {
+      totalPoints = 200;
+    } else if (totalInteractions > ACTIVITY_THRESHOLDS.high) {
+      totalPoints = 150;
+    } else if (totalInteractions > ACTIVITY_THRESHOLDS.medium) {
+      totalPoints = 125;
+    }
+
+    // Calculate dynamic weights based on interaction counts
+    const dynamicWeights = {};
+    Object.entries(baseWeights).forEach(([type, baseWeight]) => {
+      const count = interactionCounts[type];
+      if (count === 0) {
+        dynamicWeights[type] = 0;
+      } else {
+        // Calculate the proportion of total points this interaction type should get
+        const typeImportance =
+          baseWeight /
+          Object.values(baseWeights).reduce((sum, w) => sum + w, 0);
+        const typePoints = totalPoints * typeImportance;
+        // Distribute points evenly across all interactions of this type
+        dynamicWeights[type] = typePoints / count;
+      }
+    });
+
+    res.json({
+      baseWeights,
+      dynamicWeights,
+      interactionCounts,
+      totalInteractions,
+      totalPoints,
+      activityThresholds: ACTIVITY_THRESHOLDS,
+    });
+  } catch (error) {
+    console.error("Error fetching dynamic weights:", error);
+    res.status(500).json({ error: "Failed to fetch dynamic weights" });
+  }
+});
+
 module.exports = router;
-module.exports.scoreWeights = scoreWeights;
+module.exports.baseWeights = baseWeights;
