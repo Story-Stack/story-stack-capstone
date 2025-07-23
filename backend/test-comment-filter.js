@@ -102,6 +102,4 @@ setTimeout(() => {
     console.log(`Result: ${passed ? "PASSED ✅" : "FAILED ❌"}`);
     console.log("-----------------------------------");
   });
-
-  console.log("\nTesting complete!");
 }, 1000); // Wait 1 second for the filter to initialize
