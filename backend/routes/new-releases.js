@@ -69,7 +69,8 @@ router.get("/", async (_req, res) => {
           if (dateStr.length === 4) {
             // If only year is provided (YYYY format)
             publishedDate = new Date(parseInt(dateStr), 0, 1); // January 1st of that year
- f         } else if (dateStr.length === 7) {
+            f;
+          } else if (dateStr.length === 7) {
             // If year and month are provided (YYYY-MM format)
             const [year, month] = dateStr.split("-");
             publishedDate = new Date(parseInt(year), parseInt(month) - 1, 1); // 1st day of that month
@@ -292,16 +293,33 @@ router.post("/notify", async (_req, res) => {
       console.log(`Created channel with ID: ${channel.id}`);
     }
 
-    // Create a notification for a test user first to verify it works
+    // Check if users have already been notified about this book in the last 30 days
     let notificationCount = 0;
 
-    // Create notifications for all users
+    // Create notifications only for users who haven't been notified about this book recently
     for (const user of users) {
       try {
         console.log(`Processing user ${user.id} (${user.email || "no email"})`);
 
-        // Create a notification for this user regardless of previous notifications
-        // This ensures we always create at least one notification for testing
+        // Check if user already has a notification for this book in the last 30 days
+        const existingNotification = await prisma.notification.findFirst({
+          where: {
+            user_id: user.id,
+            book_id: bookToNotify.id,
+            created_at: {
+              gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000), // 30 days ago
+            },
+          },
+        });
+
+        if (existingNotification) {
+          console.log(
+            `User ${user.id} already has a notification for this book, skipping`
+          );
+          continue;
+        }
+
+        // Create a notification for this user
         const notification = await prisma.notification.create({
           data: {
             user_id: user.id,
