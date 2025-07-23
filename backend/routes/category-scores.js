@@ -62,7 +62,6 @@ router.post("/update", async (req, res) => {
       updatedCategories: scoreEntries.length,
     });
   } catch (error) {
-    console.error("Error updating category scores:", error);
     res.status(500).json({ error: "Failed to update category scores" });
   }
 });
@@ -83,7 +82,6 @@ router.get("/:userId", async (req, res) => {
 
     res.json(topCategories);
   } catch (error) {
-    console.error("Error fetching top categories:", error);
     res.status(500).json({ error: "Failed to fetch top categories" });
   }
 });
@@ -101,7 +99,6 @@ router.get("/:userId/all", async (req, res) => {
 
     res.json(allScores);
   } catch (error) {
-    console.error("Error fetching all category scores:", error);
     res.status(500).json({ error: "Failed to fetch category scores" });
   }
 });
@@ -239,7 +236,6 @@ router.post("/recalculate/:userId", async (req, res) => {
       updatedCategories: scoreEntries.length,
     });
   } catch (error) {
-    console.error("Error recalculating scores:", error);
     res.status(500).json({ error: "Failed to recalculate scores" });
   }
 });
@@ -310,7 +306,6 @@ router.get("/:userId/weights", async (req, res) => {
       activityThresholds: ACTIVITY_THRESHOLDS,
     });
   } catch (error) {
-    console.error("Error fetching dynamic weights:", error);
     res.status(500).json({ error: "Failed to fetch dynamic weights" });
   }
 });

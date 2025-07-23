@@ -8,16 +8,12 @@ const fetch = require("node-fetch");
  */
 async function sendRecommendationNotifications() {
   try {
-    console.log("Starting recommendation notifications task...");
-
     // Get all users
     const users = await prisma.user.findMany();
-    console.log(`Found ${users.length} users to process`);
 
     // Process each user
     for (const user of users) {
       try {
-        console.log(`Processing user ${user.id} (${user.email})`);
 
         // Check if user has received a recommendation notification in the last 7 days
         const recentNotification = await prisma.notification.findFirst({
@@ -31,9 +27,7 @@ async function sendRecommendationNotifications() {
         });
 
         if (recentNotification) {
-          console.log(
-            `User ${user.id} already received a recommendation in the last 7 days, skipping`
-          );
+          // User already received a recommendation in the last 7 days, skipping
           continue;
         }
 
@@ -41,16 +35,12 @@ async function sendRecommendationNotifications() {
         await fetch(
           `http://localhost:3000/api/recommendations/${user.id}?notify=true`
         );
-        console.log(`Sent recommendation notification to user ${user.id}`);
       } catch (userError) {
-        console.error(`Error processing user ${user.id}:`, userError);
         // Continue with next user
       }
     }
-
-    console.log("Recommendation notifications task completed");
   } catch (error) {
-    console.error("Error in recommendation notifications task:", error);
+    // Task failed
   }
 }
 

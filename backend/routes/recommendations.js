@@ -66,10 +66,7 @@ router.get("/:userId", async (req, res) => {
           });
         }
       } catch (error) {
-        console.warn(
-          "Failed to recalculate scores for recommendations:",
-          error
-        );
+        // Failed to recalculate scores, continue with empty recommendations
       }
 
       // If still no categories after recalculation, return empty
@@ -133,9 +130,7 @@ router.get("/:userId", async (req, res) => {
 
             // If we found a new book, create a notification
             if (newBook) {
-              console.log(
-                `Found new book recommendation: ${newBook.volumeInfo?.title}`
-              );
+              // Found new book recommendation
 
               // Find or create a channel for this book
               let channel;
@@ -173,16 +168,13 @@ router.get("/:userId", async (req, res) => {
                 }
               );
 
-              console.log(
-                `Created recommendation notification for ${newBook.volumeInfo?.title}`
-              );
+              // Recommendation notification created successfully
             } else {
-              console.log("No new books found to recommend");
+              // No new books found to recommend
             }
           }
         }
       } catch (error) {
-        console.error("Error creating recommendation notification:", error);
         // Continue even if notification creation fails
       }
     }
@@ -196,7 +188,6 @@ router.get("/:userId", async (req, res) => {
       message: "Recommendations based on your reading preferences",
     });
   } catch (error) {
-    console.error("Error fetching recommendations:", error);
     res.status(500).json({ error: "Failed to fetch recommendations" });
   }
 });
@@ -229,7 +220,6 @@ router.post("/refresh/:userId", async (req, res) => {
       message: "Recommendations refreshed based on your latest activity",
     });
   } catch (error) {
-    console.error("Error refreshing recommendations:", error);
     res.status(500).json({ error: "Failed to refresh recommendations" });
   }
 });
