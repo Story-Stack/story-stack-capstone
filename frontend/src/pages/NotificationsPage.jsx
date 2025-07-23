@@ -60,7 +60,6 @@ function NotificationsPage() {
       // Navigate to the appropriate page based on notification type
       if (notification.isRecommendation) {
         // For recommendation notifications, navigate to the book details page
-        // You might want to create a dedicated book details page or use an existing one
         navigate(`/discussion/${notification.bookId}`);
       } else {
         // For regular notifications, navigate to the discussion page
@@ -149,7 +148,10 @@ function NotificationsPage() {
                     <div className="notification-content">
                       {notification.isRecommendation && (
                         <div className="recommendation-badge">
-                          📚 Recommendation
+                          {notification.content &&
+                          notification.content.includes("New release:")
+                            ? "🆕 New Release"
+                            : "📚 Recommendation"}
                         </div>
                       )}
                       <p>{notification.content}</p>
@@ -183,6 +185,16 @@ function NotificationsPage() {
                                 {notification.bookData.volumeInfo
                                   ?.authors?.[0] || "Unknown author"}
                               </p>
+                              {notification.bookData.volumeInfo
+                                ?.publishedDate && (
+                                <p className="recommendation-published">
+                                  Published:{" "}
+                                  {
+                                    notification.bookData.volumeInfo
+                                      .publishedDate
+                                  }
+                                </p>
+                              )}
                               <p className="recommendation-category">
                                 {notification.bookData.volumeInfo
                                   ?.categories?.[0] || ""}
@@ -205,10 +217,7 @@ function NotificationsPage() {
             ) : (
               <div className="no-notifications">
                 <p>You don't have any notifications yet.</p>
-                <p>
-                  When someone posts in a book discussion you've joined, you'll
-                  see it here.
-                </p>
+             
               </div>
             )}
           </div>

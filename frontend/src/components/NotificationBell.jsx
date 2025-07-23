@@ -265,14 +265,23 @@ function NotificationBell() {
                   } ${notification.isRecommendation ? "recommendation" : ""}`}
                   onClick={() => handleNotificationClick(notification)}
                 >
-                  {/* Check if this is a recommendation notification based on content */}
+                  {/* Check if this is a recommendation or new release notification based on content */}
                   {(notification.isRecommendation ||
                     (notification.content &&
-                      notification.content.includes("enjoy reading") &&
-                      notification.content.includes(
+                      (notification.content.includes("enjoy reading") ||
+                        notification.content.includes("New release:")) &&
+                      (notification.content.includes(
                         "based on your preferences"
-                      ))) && (
-                    <div className="recommendation-badge">📚 New Book</div>
+                      ) ||
+                        notification.content.includes(
+                          "is now available"
+                        )))) && (
+                    <div className="recommendation-badge">
+                      {notification.content &&
+                      notification.content.includes("New release:")
+                        ? "🆕 New Release"
+                        : "📚 Recommendation"}
+                    </div>
                   )}
                   <p>{notification.content}</p>
                   <span className="notification-time">
