@@ -1,5 +1,10 @@
 const express = require("express");
 const { PrismaClient } = require("../generated/prisma");
+const {
+  shouldCreateNotification,
+  containsBadWords,
+  countWords,
+} = require("../utils/commentFilters");
 
 const router = express.Router();
 const prisma = new PrismaClient();
@@ -136,7 +141,7 @@ router.post("/", async (req, res) => {
       console.log("Found parent comment:", parentComment.id);
       console.log("Parent comment user:", {
         id: parentCommentUser.id,
-        email: parentCommentUser.email
+        email: parentCommentUser.email,
       });
     }
 
@@ -198,28 +203,43 @@ router.post("/", async (req, res) => {
           50
         )}${content.length > 50 ? "..." : ""}"`;
 
-
-        console.log("Creating notification with data:", {
-          user_id: parentCommentUser.id,
-          channel_id: channel.id,
-          comment_id: comment.id,
-          book_id: book_id,
-          content: notificationContent
-        });
-
-        // Create notification for the parent comment author
-        const notification = await prisma.notification.create({
-          data: {
+        // Check if we should create a notification based on content filtering
+        if (shouldCreateNotification(content)) {
+          console.log("Creating notification with data:", {
             user_id: parentCommentUser.id,
             channel_id: channel.id,
             comment_id: comment.id,
             book_id: book_id,
             content: notificationContent,
-            is_read: false,
-          },
-        });
+          });
 
-        console.log("Created notification for comment reply:", notification.id);
+          // Create notification for the parent comment author
+          const notification = await prisma.notification.create({
+            data: {
+              user_id: parentCommentUser.id,
+              channel_id: channel.id,
+              comment_id: comment.id,
+              book_id: book_id,
+              content: notificationContent,
+              is_read: false,
+            },
+          });
+
+          console.log(
+            "Created notification for comment reply:",
+            notification.id
+          );
+        } else {
+          console.log(
+            "Skipping notification creation due to content filtering:",
+            {
+              reason: "Comment contains bad words OR has fewer than 5 words",
+              content: content,
+              hasBadWords: containsBadWords(content),
+              wordCount: countWords(content),
+            }
+          );
+        }
       } catch (notificationError) {
         // Log the error but don't fail the comment creation
         console.error(
