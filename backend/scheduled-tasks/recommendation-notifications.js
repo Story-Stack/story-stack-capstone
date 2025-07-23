@@ -14,7 +14,6 @@ async function sendRecommendationNotifications() {
     // Process each user
     for (const user of users) {
       try {
-
         // Check if user has received a recommendation notification in the last 7 days
         const recentNotification = await prisma.notification.findFirst({
           where: {

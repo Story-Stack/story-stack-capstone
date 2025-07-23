@@ -65,7 +65,9 @@ async function checkAndNotifyNewReleases() {
 async function sendRecommendationNotifications() {
   try {
     // Call the recommendation-notifications task
-    const { sendRecommendationNotifications } = require("./scheduled-tasks/recommendation-notifications");
+    const {
+      sendRecommendationNotifications,
+    } = require("./scheduled-tasks/recommendation-notifications");
     await sendRecommendationNotifications();
   } catch (error) {
     // Error sending recommendation notifications

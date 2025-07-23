@@ -185,16 +185,7 @@ function NotificationsPage() {
                                 {notification.bookData.volumeInfo
                                   ?.authors?.[0] || "Unknown author"}
                               </p>
-                              {notification.bookData.volumeInfo
-                                ?.publishedDate && (
-                                <p className="recommendation-published">
-                                  Published:{" "}
-                                  {
-                                    notification.bookData.volumeInfo
-                                      .publishedDate
-                                  }
-                                </p>
-                              )}
+                    
                               <p className="recommendation-category">
                                 {notification.bookData.volumeInfo
                                   ?.categories?.[0] || ""}
@@ -217,7 +208,7 @@ function NotificationsPage() {
             ) : (
               <div className="no-notifications">
                 <p>You don't have any notifications yet.</p>
-             
+
               </div>
             )}
           </div>

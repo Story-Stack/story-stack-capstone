@@ -23,6 +23,51 @@ const ACTIVITY_THRESHOLDS = {
   veryHigh: 500, // 201+ interactions: 200 points
 };
 
+/**
+ * Calculate dynamic weights based on user interaction counts
+ * @param {Object} interactionCounts - Object containing counts of different interaction types
+ * @returns {Object} - Object containing calculated dynamic weights and related data
+ */
+function calculateDynamicWeights(interactionCounts) {
+  // Calculate total interactions to determine scaling factor
+  const totalInteractions = Object.values(interactionCounts).reduce(
+    (sum, count) => sum + count,
+    0
+  );
+
+  // Determine total points based on activity level
+  let totalPoints = TOTAL_INTERACTION_POINTS;
+  if (totalInteractions > ACTIVITY_THRESHOLDS.veryHigh) {
+    totalPoints = 200;
+  } else if (totalInteractions > ACTIVITY_THRESHOLDS.high) {
+    totalPoints = 150;
+  } else if (totalInteractions > ACTIVITY_THRESHOLDS.medium) {
+    totalPoints = 125;
+  }
+
+  // Calculate dynamic weights based on interaction counts
+  const dynamicWeights = {};
+  Object.entries(baseWeights).forEach(([type, baseWeight]) => {
+    const count = interactionCounts[type];
+    if (count === 0) {
+      dynamicWeights[type] = 0;
+    } else {
+      // Calculate the proportion of total points this interaction type should get
+      const typeImportance =
+        baseWeight / Object.values(baseWeights).reduce((sum, w) => sum + w, 0);
+      const typePoints = totalPoints * typeImportance;
+      // Distribute points evenly across all interactions of this type
+      dynamicWeights[type] = typePoints / count;
+    }
+  });
+
+  return {
+    dynamicWeights,
+    totalInteractions,
+    totalPoints,
+  };
+}
+
 // Update category scores for a user
 router.post("/update", async (req, res) => {
   try {
@@ -128,38 +173,8 @@ router.post("/recalculate/:userId", async (req, res) => {
       joinChannel: channels.length,
     };
 
-    // Calculate total interactions to determine scaling factor
-    const totalInteractions = Object.values(interactionCounts).reduce(
-      (sum, count) => sum + count,
-      0
-    );
-
-    // Determine total points based on activity level
-    let totalPoints = TOTAL_INTERACTION_POINTS;
-    if (totalInteractions > ACTIVITY_THRESHOLDS.veryHigh) {
-      totalPoints = 200;
-    } else if (totalInteractions > ACTIVITY_THRESHOLDS.high) {
-      totalPoints = 150;
-    } else if (totalInteractions > ACTIVITY_THRESHOLDS.medium) {
-      totalPoints = 125;
-    }
-
-    // Calculate dynamic weights based on interaction counts
-    const dynamicWeights = {};
-    Object.entries(baseWeights).forEach(([type, baseWeight]) => {
-      const count = interactionCounts[type];
-      if (count === 0) {
-        dynamicWeights[type] = 0;
-      } else {
-        // Calculate the proportion of total points this interaction type should get
-        const typeImportance =
-          baseWeight /
-          Object.values(baseWeights).reduce((sum, w) => sum + w, 0);
-        const typePoints = totalPoints * typeImportance;
-        // Distribute points evenly across all interactions of this type
-        dynamicWeights[type] = typePoints / count;
-      }
-    });
+    // Calculate dynamic weights using the helper function
+    const { dynamicWeights } = calculateDynamicWeights(interactionCounts);
 
     // Calculate scores
     const categoryScores = {};
@@ -264,38 +279,9 @@ router.get("/:userId/weights", async (req, res) => {
       joinChannel: channels.length,
     };
 
-    // Calculate total interactions to determine scaling factor
-    const totalInteractions = Object.values(interactionCounts).reduce(
-      (sum, count) => sum + count,
-      0
-    );
-
-    // Determine total points based on activity level
-    let totalPoints = TOTAL_INTERACTION_POINTS;
-    if (totalInteractions > ACTIVITY_THRESHOLDS.veryHigh) {
-      totalPoints = 200;
-    } else if (totalInteractions > ACTIVITY_THRESHOLDS.high) {
-      totalPoints = 150;
-    } else if (totalInteractions > ACTIVITY_THRESHOLDS.medium) {
-      totalPoints = 125;
-    }
-
-    // Calculate dynamic weights based on interaction counts
-    const dynamicWeights = {};
-    Object.entries(baseWeights).forEach(([type, baseWeight]) => {
-      const count = interactionCounts[type];
-      if (count === 0) {
-        dynamicWeights[type] = 0;
-      } else {
-        // Calculate the proportion of total points this interaction type should get
-        const typeImportance =
-          baseWeight /
-          Object.values(baseWeights).reduce((sum, w) => sum + w, 0);
-        const typePoints = totalPoints * typeImportance;
-        // Distribute points evenly across all interactions of this type
-        dynamicWeights[type] = typePoints / count;
-      }
-    });
+    // Calculate dynamic weights using the helper function
+    const { dynamicWeights, totalPoints, totalInteractions } =
+      calculateDynamicWeights(interactionCounts);
 
     res.json({
       baseWeights,
