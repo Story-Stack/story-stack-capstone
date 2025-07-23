@@ -2,16 +2,13 @@ const express = require("express");
 const { PrismaClient } = require("../generated/prisma");
 
 const router = express.Router();
-// Create a new instance of PrismaClient with debug logging
-const prisma = new PrismaClient({
-  log: ["query", "info", "warn", "error"],
-});
+// Create a new instance of PrismaClient
+const prisma = new PrismaClient();
 
 // Get all unread notifications for a user
 router.get("/user/:userId", async (req, res) => {
   try {
     const { userId } = req.params;
-    console.log("Fetching notifications for user ID:", userId);
 
     // Find the user by supabase_id (since frontend sends supabase user ID)
     const user = await prisma.user.findUnique({
@@ -21,12 +18,9 @@ router.get("/user/:userId", async (req, res) => {
     });
 
     if (!user) {
-      console.log("User not found with supabase_id:", userId);
       // Return empty array instead of 404 to avoid errors in the frontend
       return res.json([]);
     }
-
-    console.log("Found user with internal ID:", user.id);
 
     // Get all notifications for the user, not just unread ones
     const notifications = await prisma.notification.findMany({
@@ -43,23 +37,7 @@ router.get("/user/:userId", async (req, res) => {
       },
     });
 
-    // Debug: Check if is_recommendation field exists in the database
-    console.log("First notification sample:", notifications[0]);
-
-    // Debug: Log raw notification data
-    console.log(
-      "Raw notification data:",
-      JSON.stringify(notifications, null, 2)
-    );
-
-    console.log(`Found ${notifications.length} notifications for user`);
-
     // Format notifications for frontend
-    // Format notifications for frontend with more detailed logging
-    console.log(
-      "Raw notifications from database:",
-      JSON.stringify(notifications.slice(0, 2), null, 2)
-    );
 
     const formattedNotifications = notifications.map((notification) => {
       try {
@@ -80,14 +58,8 @@ router.get("/user/:userId", async (req, res) => {
           isRecommendation: notification.is_recommendation || false,
           bookData: notification.book_data || null,
         };
-        console.log(`Formatted notification ${notification.id}:`, formatted);
         return formatted;
       } catch (error) {
-        console.error(
-          `Error formatting notification ${notification.id}:`,
-          error
-        );
-        console.error("Problematic notification:", notification);
         // Return a minimal notification to prevent the entire request from failing
         return {
           id: notification.id,
@@ -101,7 +73,6 @@ router.get("/user/:userId", async (req, res) => {
 
     res.json(formattedNotifications);
   } catch (error) {
-    console.error("Error fetching notifications:", error);
     // Return empty array instead of 500 to avoid errors in the frontend
     res.json([]);
   }
@@ -111,7 +82,6 @@ router.get("/user/:userId", async (req, res) => {
 router.put("/:notificationId/read", async (req, res) => {
   try {
     const { notificationId } = req.params;
-    console.log("Marking notification as read:", notificationId);
 
     const updatedNotification = await prisma.notification.update({
       where: {
@@ -121,17 +91,14 @@ router.put("/:notificationId/read", async (req, res) => {
         is_read: true,
       },
     });
-
-    console.log("Successfully marked notification as read");
     res.json({
       id: updatedNotification.id,
       isRead: updatedNotification.is_read,
     });
   } catch (error) {
-    console.error("Error marking notification as read:", error);
     // Return success to avoid errors in frontend
     res.json({
-      id: notificationId,
+      id: req.params.notificationId,
       isRead: true,
       error: "Failed to update in database but marked as read in UI",
     });
@@ -175,17 +142,14 @@ router.post("/recommendation", async (req, res) => {
       },
     });
 
-    console.log("Created recommendation notification:", notification);
-
     // Trigger a refresh of notifications for the user
     // This is a workaround to ensure the frontend gets the new notification
     try {
       await fetch(`http://localhost:3000/api/notifications/user/${userId}`, {
         method: "GET",
       });
-      console.log("Triggered notification refresh for user:", userId);
     } catch (refreshError) {
-      console.error("Error refreshing notifications:", refreshError);
+      // Continue even if refresh fails
     }
 
     res.status(201).json({
@@ -193,7 +157,6 @@ router.post("/recommendation", async (req, res) => {
       message: "Recommendation notification created successfully",
     });
   } catch (error) {
-    console.error("Error creating recommendation notification:", error);
     res
       .status(500)
       .json({ error: "Failed to create recommendation notification" });
@@ -204,7 +167,6 @@ router.post("/recommendation", async (req, res) => {
 router.put("/user/:userId/read-all", async (req, res) => {
   try {
     const { userId } = req.params;
-    console.log("Marking all notifications as read for user ID:", userId);
 
     // Find the user by supabase_id
     const user = await prisma.user.findUnique({
@@ -214,12 +176,9 @@ router.put("/user/:userId/read-all", async (req, res) => {
     });
 
     if (!user) {
-      console.log("User not found with supabase_id:", userId);
       // Return success even if user not found to avoid errors in frontend
       return res.json({ message: "No notifications to mark as read" });
     }
-
-    console.log("Found user with internal ID:", user.id);
 
     const result = await prisma.notification.updateMany({
       where: {
@@ -231,13 +190,11 @@ router.put("/user/:userId/read-all", async (req, res) => {
       },
     });
 
-    console.log(`Marked ${result.count} notifications as read`);
     res.json({
       message: "All notifications marked as read",
       count: result.count,
     });
   } catch (error) {
-    console.error("Error marking all notifications as read:", error);
     // Return success to avoid errors in frontend
     res.json({ message: "No notifications to mark as read" });
   }

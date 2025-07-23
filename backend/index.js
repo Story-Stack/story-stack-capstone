@@ -45,8 +45,6 @@ app.get("/", (_req, res) => {
 // Function to check for new book releases and notify users
 async function checkAndNotifyNewReleases() {
   try {
-    console.log("Checking for new book releases...");
-
     // Call the new-releases/notify endpoint
     const response = await fetch(
       `http://localhost:${PORT}/api/new-releases/notify`,
@@ -55,22 +53,28 @@ async function checkAndNotifyNewReleases() {
       }
     );
 
-    if (response.ok) {
-      const result = await response.json();
-      console.log(result.message || "New releases check completed");
-    } else {
-      console.error("Failed to check for new releases:", await response.text());
+    if (!response.ok) {
+      // Failed to check for new releases
     }
   } catch (error) {
-    console.error("Error checking for new releases:", error);
+    // Error checking for new releases
+  }
+}
+
+// Function to send recommendation notifications
+async function sendRecommendationNotifications() {
+  try {
+    // Call the recommendation-notifications task
+    const { sendRecommendationNotifications } = require("./scheduled-tasks/recommendation-notifications");
+    await sendRecommendationNotifications();
+  } catch (error) {
+    // Error sending recommendation notifications
   }
 }
 
 // Function to check for users who need recommendations
 async function checkAndSendRecommendations() {
   try {
-    console.log("Checking for users who need recommendations...");
-
     // Get all users
     const users = await prisma.user.findMany();
 
@@ -89,10 +93,6 @@ async function checkAndSendRecommendations() {
 
         // If no recent recommendation, check if there are new books to recommend
         if (!recentNotification) {
-          console.log(
-            `Checking for new book recommendations for user ${user.id} (${user.email})`
-          );
-
           // Get user's top categories
           const topCategories = await prisma.userCategoryScore.findMany({
             where: { user_id: user.id },
@@ -106,31 +106,20 @@ async function checkAndSendRecommendations() {
             await fetch(
               `http://localhost:${PORT}/api/recommendations/${user.supabase_id}?notify=true`
             );
-            console.log(`Recommendation check completed for user ${user.id}`);
-          } else {
-            console.log(`User ${user.id} has no category preferences yet`);
           }
-        } else {
-          console.log(
-            `User ${user.id} already received a recommendation recently`
-          );
         }
       } catch (userError) {
-        console.error(`Error processing user ${user.id}:`, userError);
+        // Continue with next user
       }
     }
-
-    console.log("Recommendation check completed for all users");
   } catch (error) {
-    console.error("Error checking for recommendations:", error);
+    // Error checking for recommendations
   }
 }
 
 // Start server
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log(`✅ Server running on port ${PORT}`);
-
   // Schedule periodic checks
   const RECOMMENDATION_CHECK_INTERVAL = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
   const NEW_RELEASES_CHECK_INTERVAL = 24 * 60 * 60 * 1000; // 24 hours in milliseconds

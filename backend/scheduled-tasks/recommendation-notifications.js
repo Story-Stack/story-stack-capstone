@@ -53,11 +53,9 @@ module.exports = {
 if (require.main === module) {
   sendRecommendationNotifications()
     .then(() => {
-      console.log("Task completed successfully");
       process.exit(0);
     })
     .catch((error) => {
-      console.error("Task failed:", error);
       process.exit(1);
     });
 }
