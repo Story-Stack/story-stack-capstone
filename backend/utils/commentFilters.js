@@ -1,21 +1,74 @@
 // Import the bad-words package
 const Filter = require('bad-words');
 
-// Create a filter instance with default word list
+/**
+ * Trie data structure for efficient bad word detection
+ */
+class TrieNode {
+  constructor() {
+    this.children = {};
+    this.isEndOfWord = false;
+  }
+}
+
+class Trie {
+  constructor() {
+    this.root = new TrieNode();
+  }
+
+  insert(word) {
+    if (!word || typeof word !== 'string') return;
+
+    let node = this.root;
+    for (let char of word.toLowerCase()) {
+      if (!node.children[char]) node.children[char] = new TrieNode();
+      node = node.children[char];
+    }
+    node.isEndOfWord = true;
+  }
+
+  searchInText(text) {
+    if (!text || typeof text !== 'string') return false;
+
+    text = text.toLowerCase();
+    for (let i = 0; i < text.length; i++) {
+      let node = this.root;
+      let j = i;
+      while (j < text.length && node.children[text[j]]) {
+        node = node.children[text[j]];
+        if (node.isEndOfWord) return true;  // Found a bad word
+        j++;
+      }
+    }
+    return false;
+  }
+}
+
+// Initialize the Trie with bad words from the bad-words module
+const badWordsTrie = new Trie();
 let filter;
+
 try {
+  // Create a filter instance to get the list of bad words
   filter = new Filter();
 
-// Adding custom words to the list of bad words for my test cases
-  filter.addWords('foolish', 'stupid');
+  // Add custom words to the filter
+  const customBadWords = ['foolish', 'stupid', 'idiot'];
+  customBadWords.forEach(word => filter.addWords(word));
 
-  console.log('Bad-words filter initialized successfully');
+  // Get the list of bad words from the filter
+  const badWordsList = filter.list;
+
+  // Insert all bad words into the Trie
+  badWordsList.forEach(word => badWordsTrie.insert(word));
+
+  console.log('Bad words Trie initialized successfully with', badWordsList.length, 'words');
 } catch (error) {
-  console.error('Error initializing bad-words filter:', error);
+  console.error('Error initializing bad words Trie:', error);
 }
 
 /**
- * Checks if a comment contains bad words
+ * Checks if a comment contains bad words using Trie for efficient lookup
  * @param {string} text - The comment text to check
  * @returns {boolean} - True if the comment contains bad words
  */
@@ -23,15 +76,30 @@ const containsBadWords = (text) => {
   if (!text || typeof text !== 'string') return false;
 
   try {
-    if (filter) {
-      return filter.isProfane(text);
-    } else {
-      // Fallback if filter initialization failed
-      const commonBadWords = ['fuck', 'shit', 'ass', 'bitch', 'damn', 'foolish'];
-      return commonBadWords.some(word => text.toLowerCase().includes(word));
+    // First try with our Trie implementation for efficiency
+    if (badWordsTrie.searchInText(text)) {
+      return true;
     }
+
+    // As a fallback, also check with the original filter
+    // This ensures we catch any edge cases our Trie might miss
+    if (filter && filter.isProfane(text)) {
+      return true;
+    }
+
+    return false;
   } catch (error) {
     console.error('Error checking for bad words:', error);
+
+    // Fallback to the original filter if our Trie fails
+    if (filter) {
+      try {
+        return filter.isProfane(text);
+      } catch (filterError) {
+        console.error('Error using filter fallback:', filterError);
+      }
+    }
+
     return false;
   }
 };

@@ -58,7 +58,7 @@ setTimeout(() => {
       },
     },
     {
-      comment: "Five words only here pecker",
+      comment: "Five words only here kawk",
       expected: {
         hasBadWords: true,
         wordCount: 5,
