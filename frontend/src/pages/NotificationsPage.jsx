@@ -149,7 +149,8 @@ function NotificationsPage() {
                       {notification.isRecommendation && (
                         <div className="recommendation-badge">
                           {notification.content &&
-                          notification.content.includes("New release:")
+                          (notification.content.toLowerCase().includes("new release") ||
+                           notification.content.toLowerCase().includes("now available"))
                             ? "🆕 New Release"
                             : "📚 Recommendation"}
                         </div>
@@ -185,7 +186,7 @@ function NotificationsPage() {
                                 {notification.bookData.volumeInfo
                                   ?.authors?.[0] || "Unknown author"}
                               </p>
-                    
+
                               <p className="recommendation-category">
                                 {notification.bookData.volumeInfo
                                   ?.categories?.[0] || ""}
