@@ -16,6 +16,7 @@ const userChannelsRoutes = require("./routes/user-channels.js");
 const categoryScoresRoutes = require("./routes/category-scores.js");
 const recommendationsRoutes = require("./routes/recommendations.js");
 const notificationsRoutes = require("./routes/notifications.js");
+const newReleasesRoutes = require("./routes/new-releases.js");
 
 const app = express();
 const prisma = new PrismaClient();
@@ -34,11 +35,36 @@ app.use("/api/user-channels", userChannelsRoutes);
 app.use("/api/category-scores", categoryScoresRoutes);
 app.use("/api/recommendations", recommendationsRoutes);
 app.use("/api/notifications", notificationsRoutes);
+app.use("/api/new-releases", newReleasesRoutes);
 
 // Default route
 app.get("/", (_req, res) => {
   res.send("Welcome to StoryStack API");
 });
+
+// Function to check for new book releases and notify users
+async function checkAndNotifyNewReleases() {
+  try {
+    console.log("Checking for new book releases...");
+
+    // Call the new-releases/notify endpoint
+    const response = await fetch(
+      `http://localhost:${PORT}/api/new-releases/notify`,
+      {
+        method: "POST",
+      }
+    );
+
+    if (response.ok) {
+      const result = await response.json();
+      console.log(result.message || "New releases check completed");
+    } else {
+      console.error("Failed to check for new releases:", await response.text());
+    }
+  } catch (error) {
+    console.error("Error checking for new releases:", error);
+  }
+}
 
 // Function to check for users who need recommendations
 async function checkAndSendRecommendations() {
@@ -105,15 +131,20 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`✅ Server running on port ${PORT}`);
 
-  // Schedule periodic recommendation checks (every 24 hours)
-  // For testing, you can reduce this interval
+  // Schedule periodic checks
   const RECOMMENDATION_CHECK_INTERVAL = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
+  const NEW_RELEASES_CHECK_INTERVAL = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
 
-  // Initial check after 1 minute
+  // Initial checks after 1 minute
   setTimeout(() => {
+    // Check for recommendations
     checkAndSendRecommendations();
-
-    // Then set up recurring checks
+    // Set up recurring recommendation checks
     setInterval(checkAndSendRecommendations, RECOMMENDATION_CHECK_INTERVAL);
-  }, 60000); // 1 minute delay for initial check
+
+    // Check for new releases
+    checkAndNotifyNewReleases();
+    // Set up recurring new releases checks
+    setInterval(checkAndNotifyNewReleases, NEW_RELEASES_CHECK_INTERVAL);
+  }, 60000); // 1 minute delay for initial checks
 });

@@ -129,6 +129,13 @@
   font-style: italic;
 }
 
+.recommendation-published {
+  font-size: 0.85rem;
+  margin: 0 0 4px 0;
+  color: #666;
+  font-weight: 500;
+}
+
 .recommendation-category {
   font-size: 0.8rem;
   color: #666;

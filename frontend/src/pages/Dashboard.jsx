@@ -327,6 +327,7 @@ function Dashboard() {
         </aside>
 
         <main className="main-content">
+          {/* Book List Section */}
           <BookList
             books={books}
             onJoinDiscussion={handleJoinDiscussion}
