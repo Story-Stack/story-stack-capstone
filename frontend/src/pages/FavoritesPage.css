@@ -1,7 +1,13 @@
 .favorites-page {
   display: flex;
-  min-height: 100vh;
-  background-color: #f5f5f5;
+  gap: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.sidebar-container {
+  flex: 0 0 250px;
 }
 
 .favorites-content {
@@ -9,8 +15,6 @@
   padding: 2rem;
   margin-left: 50px; /* Account for sidebar width */
   margin-right: 50px;
-
-
 }
 
 .favorites-header {
@@ -40,12 +44,12 @@
   padding: 60px 20px;
   color: #666;
 }
-.favorites-previous{
+.favorites-previous {
   background-color: red;
   color: white;
   border: none;
   border-radius: 5px;
-  height : 30px;
+  height: 30px;
 }
 
 .no-user-message p,
