@@ -50,7 +50,7 @@ router.get("/:id", async (req, res) => {
 // Create new user profile
 router.post("/", async (req, res) => {
   try {
-    const { supabase_id, email, first_name, last_name } = req.body;
+    const { supabase_id, email, first_name, last_name, bio } = req.body;
 
     // Check if user already exists
     const existingUser = await prisma.user.findUnique({
@@ -70,12 +70,37 @@ router.post("/", async (req, res) => {
         email,
         first_name: first_name || null,
         last_name: last_name || null,
+        bio: bio || null,
       },
     });
 
     res.status(201).json(newUser);
   } catch (error) {
     console.error("Error creating user:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// Update user profile
+router.put("/:supabaseId", async (req, res) => {
+  try {
+    const { supabaseId } = req.params;
+    const { first_name, last_name, bio } = req.body;
+
+    const updatedUser = await prisma.user.update({
+      where: {
+        supabase_id: supabaseId,
+      },
+      data: {
+        first_name: first_name !== undefined ? first_name : undefined,
+        last_name: last_name !== undefined ? last_name : undefined,
+        bio: bio !== undefined ? bio : undefined,
+      },
+    });
+
+    res.json(updatedUser);
+  } catch (error) {
+    console.error("Error updating user:", error);
     res.status(500).json({ error: "Internal server error" });
   }
 });
