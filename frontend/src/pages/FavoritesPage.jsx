@@ -8,6 +8,7 @@ import "./FavoritesPage.css";
 function FavoritesPage() {
   const [favorites, setFavorites] = useState([]);
   const [shelfItems, setShelfItems] = useState(new Set());
+  const [joinedChannels, setJoinedChannels] = useState(new Set());
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -16,9 +17,11 @@ function FavoritesPage() {
     if (user) {
       loadFavorites();
       loadShelfItems();
+      loadJoinedChannels();
     } else {
       setFavorites([]);
       setShelfItems(new Set());
+      setJoinedChannels(new Set());
       setLoading(false);
     }
   }, [user]);
@@ -86,6 +89,94 @@ function FavoritesPage() {
         setFavorites((prev) => prev.filter((fav) => fav.book_id !== book.id));
       } else {
         alert("Failed to remove from favorites. Please try again.");
+      }
+    } catch (error) {
+      alert("Network error. Please try again.");
+    }
+  };
+
+  const loadJoinedChannels = async () => {
+    if (!user) return;
+
+    try {
+      const response = await fetch(
+        `http://localhost:3000/api/user-channels/user/${user.id}`
+      );
+
+      if (response.ok) {
+        const channelsData = await response.json();
+        const channelIds = new Set(channelsData.map((channel) => channel.id));
+        setJoinedChannels(channelIds);
+      } else {
+        setJoinedChannels(new Set());
+      }
+    } catch (error) {
+      console.error("Error loading joined channels:", error);
+      setJoinedChannels(new Set());
+    }
+  };
+
+  const handleJoinDiscussion = async (book) => {
+    if (!user) return;
+
+    try {
+      const isJoined = joinedChannels.has(book.id);
+
+      if (isJoined) {
+        // Leave the channel
+        const response = await fetch(
+          "http://localhost:3000/api/user-channels/leave",
+          {
+            method: "DELETE",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              userId: user.id,
+              bookId: book.id,
+            }),
+          }
+        );
+
+        if (response.ok) {
+          setJoinedChannels((prev) => {
+            const newJoinedChannels = new Set(prev);
+            newJoinedChannels.delete(book.id);
+            return newJoinedChannels;
+          });
+        } else {
+          alert("Failed to leave discussion. Please try again.");
+        }
+      } else {
+        // Join the channel
+        const response = await fetch(
+          "http://localhost:3000/api/user-channels/join",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              userId: user.id,
+              bookId: book.id,
+              bookTitle: book.volumeInfo.title,
+              bookData: book,
+            }),
+          }
+        );
+
+        if (response.ok) {
+          setJoinedChannels((prev) => {
+            const newJoinedChannels = new Set(prev);
+            newJoinedChannels.add(book.id);
+            return newJoinedChannels;
+          });
+
+          // Navigate to the discussion page
+          navigate(`/discussion/${book.id}`);
+        } else {
+          alert("Failed to join discussion. Please try again.");
+        }
       }
     } catch (error) {
       alert("Network error. Please try again.");
@@ -198,7 +289,12 @@ function FavoritesPage() {
     <div className="favorites-page">
       <Sidebar />
       <div className="favorites-content">
-        <button className="favorites-previous" onClick={() => navigate("/dashboard")}>❮ Previous</button>
+        <button
+          className="favorites-previous"
+          onClick={() => navigate("/dashboard")}
+        >
+          ❮ Previous
+        </button>
 
         <div className="favorites-header">
           <h1>My Favorites ({favorites.length})</h1>
@@ -250,6 +346,8 @@ function FavoritesPage() {
                   toShelf={shelfItems.has(book.id)}
                   onToggleFavorite={() => handleRemoveFromFavorites(book)}
                   onToggleToShelf={() => handleToggleToShelf(book)}
+                  onJoinDiscussion={handleJoinDiscussion}
+                  isJoined={joinedChannels.has(book.id)}
                 />
               );
             })}
