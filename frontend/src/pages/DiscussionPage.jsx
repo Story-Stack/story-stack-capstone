@@ -3,11 +3,14 @@ import "./DiscussionPage.css";
 import { useNavigate, useParams } from "react-router-dom";
 import { useAuth } from "../App";
 import { refreshNotificationsEvent } from "../components/NotificationBell";
+import UserProfilePopup from "../components/UserProfilePopup";
 
 export default function DiscussionPage() {
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState("");
   const [bookData, setBookData] = useState(null);
+  const [showUserProfile, setShowUserProfile] = useState(false);
+  const [selectedUser, setSelectedUser] = useState(null);
   const messagesEndRef = useRef(null);
   const navigate = useNavigate();
   const { bookId } = useParams();
@@ -242,7 +245,29 @@ export default function DiscussionPage() {
                 }`}
               >
                 {!isCurrentUser && (
-                  <div className="sender-name">{msg.sender}</div>
+                  <div
+                    className="sender-name"
+                    onClick={() => {
+                      setSelectedUser({
+                        id: msg.userId,
+                        supabaseId: msg.supabase_id,
+                      });
+                      setShowUserProfile(true);
+                    }}
+                  >
+                    {msg.sender}
+                    {showUserProfile &&
+                      selectedUser &&
+                      selectedUser.id === msg.userId && (
+                        <div className="user-popup-container">
+                          <UserProfilePopup
+                            userId={selectedUser.id}
+                            supabaseId={selectedUser.supabaseId}
+                            onClose={() => setShowUserProfile(false)}
+                          />
+                        </div>
+                      )}
+                  </div>
                 )}
 
                 <div className="message-content">{msg.content}</div>
