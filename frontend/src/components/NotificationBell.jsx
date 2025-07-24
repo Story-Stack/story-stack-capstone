@@ -269,16 +269,10 @@ function NotificationBell() {
                   {(notification.isRecommendation ||
                     (notification.content &&
                       (notification.content.includes("enjoy reading") ||
-                        notification.content.includes("New release:")) &&
-                      (notification.content.includes(
-                        "based on your preferences"
-                      ) ||
-                        notification.content.includes(
-                          "is now available"
-                        )))) && (
+                        notification.content.includes("NEW RELEASE")))) && (
                     <div className="recommendation-badge">
                       {notification.content &&
-                      notification.content.includes("New release:")
+                      notification.content.includes("NEW RELEASE")
                         ? "🆕 New Release"
                         : "📚 Recommendation"}
                     </div>

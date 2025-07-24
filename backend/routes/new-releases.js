@@ -3,9 +3,7 @@ const { PrismaClient } = require("../generated/prisma");
 const fetch = require("node-fetch");
 
 const router = express.Router();
-const prisma = new PrismaClient({
-  log: ["query", "info", "warn", "error"],
-});
+const prisma = new PrismaClient();
 
 // Get new releases from Google Books API
 router.get("/", async (_req, res) => {
@@ -17,21 +15,14 @@ router.get("/", async (_req, res) => {
         .json({ error: "Google Books API key not configured" });
     }
 
-    // Get the current date and date from 6 months ago (for truly recent books)
+    // Get the current date and date from 30 days ago (for recent books)
     const today = new Date();
-    const sixMonthsAgo = new Date();
-    sixMonthsAgo.setMonth(today.getMonth() - 6);
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(today.getDate() - 30);
 
-    // Format dates as YYYY-MM-DD for the API query
-    const startDate = sixMonthsAgo.toISOString().split("T")[0];
-    const endDate = today.toISOString().split("T")[0];
 
     // Use a query that specifically targets new books
     const query = `subject:fiction&orderBy=newest`;
-    console.log(`Fetching new releases with query: ${query}`);
-    console.log(
-      `Filtering for books published between ${startDate} and ${endDate}`
-    );
 
     const response = await fetch(
       `https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(
@@ -40,9 +31,6 @@ router.get("/", async (_req, res) => {
     );
 
     if (!response.ok) {
-      console.error(
-        `Google Books API error: ${response.status} ${response.statusText}`
-      );
       return res
         .status(response.status)
         .json({ error: "Failed to fetch new releases from API" });
@@ -50,7 +38,6 @@ router.get("/", async (_req, res) => {
 
     const data = await response.json();
 
-    // Filter to books with good data AND published within the last 6 months
     const newReleases =
       data.items?.filter((book) => {
         // Check if book has all required fields
@@ -69,7 +56,6 @@ router.get("/", async (_req, res) => {
           if (dateStr.length === 4) {
             // If only year is provided (YYYY format)
             publishedDate = new Date(parseInt(dateStr), 0, 1); // January 1st of that year
-            f;
           } else if (dateStr.length === 7) {
             // If year and month are provided (YYYY-MM format)
             const [year, month] = dateStr.split("-");
@@ -81,39 +67,36 @@ router.get("/", async (_req, res) => {
 
           // Check if the date is valid
           if (isNaN(publishedDate.getTime())) {
-            console.log(
-              `Invalid publication date for book: ${book.volumeInfo.title} - ${dateStr}`
-            );
             return false;
           }
 
-          // Strict check to ensure the book is actually recent
-          const isRecent =
-            publishedDate >= sixMonthsAgo && publishedDate <= today;
+          // Get date from 30 days ago
+          const thirtyDaysAgo = new Date();
+          thirtyDaysAgo.setDate(today.getDate() - 30);
 
-          if (!isRecent) {
-            console.log(
-              `Book not recent enough: ${book.volumeInfo.title} - Published: ${dateStr}`
-            );
-          }
+          // Special handling for current month books
+          const isCurrentMonth =
+            publishedDate.getFullYear() === today.getFullYear() &&
+            publishedDate.getMonth() === today.getMonth();
 
-          return isRecent;
+          // Make sure the book is recent AND not in the future
+          const isRecent = publishedDate >= thirtyDaysAgo;
+          const isNotFuture = publishedDate <= today;
+
+          // Accept books from current month or within the last 30 days
+          const isValid = (isRecent || isCurrentMonth) && isNotFuture;
+
+          return isValid;
         } catch (error) {
-          console.log(
-            `Error parsing date for book: ${book.volumeInfo.title} - ${error.message}`
-          );
           return false;
         }
       }) || [];
-
-    console.log(`Found ${newReleases.length} new releases`);
 
     res.json({
       newReleases,
       count: newReleases.length,
     });
   } catch (error) {
-    console.error("Error fetching new releases:", error);
     res.status(500).json({ error: "Failed to fetch new releases" });
   }
 });
@@ -121,11 +104,8 @@ router.get("/", async (_req, res) => {
 // Notify users about new releases - completely rewritten for reliability
 router.post("/notify", async (_req, res) => {
   try {
-    console.log("Starting new release notification process");
-
     // Get all users
     const users = await prisma.user.findMany();
-    console.log(`Found ${users.length} users to potentially notify`);
 
     if (!users.length) {
       return res.json({ message: "No users to notify" });
@@ -134,71 +114,71 @@ router.post("/notify", async (_req, res) => {
     // Get new releases using a reliable approach
     const apiKey = process.env.GOOGLE_BOOKS_API_KEY;
     if (!apiKey) {
-      console.error("Google Books API key not configured");
       return res
         .status(500)
         .json({ error: "Google Books API key not configured" });
     }
 
-    // Get the current date and date from 6 months ago (for truly recent books)
-    const today = new Date();
-    const sixMonthsAgo = new Date();
-    sixMonthsAgo.setMonth(today.getMonth() - 6);
 
-    // Format dates as YYYY-MM-DD for the API query
-    const startDate = sixMonthsAgo.toISOString().split("T")[0];
-    const endDate = today.toISOString().split("T")[0];
+    // Use multiple queries to increase chances of finding good books
+    const queries = [
+      "subject:fiction",
+      "subject:novel",
+      "subject:thriller",
+      "subject:romance",
+      "subject:fantasy",
+      "subject:mystery",
+      "inauthor:stephen+king", // Popular author example
+      "inauthor:j+k+rowling", // Popular author example
+      "inauthor:james+patterson", // Popular author example
+    ];
 
-    // Use a query that specifically targets new books with publication date filtering
-    const query = `subject:fiction&orderBy=newest`;
-    console.log(`Using query: ${query} for new releases`);
-    console.log(
-      `Filtering for books published between ${startDate} and ${endDate}`
-    );
+    let allBooks = [];
 
-    const url = `https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(
-      query
-    )}&orderBy=newest&maxResults=40&key=${apiKey}`;
-    console.log(`Making API request to: ${url}`);
+    for (const queryString of queries) {
+      const url = `https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(
+        queryString
+      )}&orderBy=newest&maxResults=40&key=${apiKey}`;
 
-    const response = await fetch(url);
+      try {
+        const response = await fetch(url);
 
-    if (!response.ok) {
-      console.error(
-        `Google Books API error: ${response.status} ${response.statusText}`
-      );
-      return res.status(response.status).json({
-        error: "Failed to fetch new releases from Google Books API",
-        details: `Status: ${response.status}, ${response.statusText}`,
-      });
+        if (!response.ok) {
+          continue;
+        }
+
+        const data = await response.json();
+
+        if (data.items && data.items.length > 0) {
+          allBooks = [...allBooks, ...data.items];
+        }
+      } catch (error) {
+        // Continue with next query
+      }
     }
 
-    const data = await response.json();
-    console.log(`API returned ${data.items?.length || 0} books`);
-
-    if (!data.items || data.items.length === 0) {
-      console.log("No books returned from API");
+    if (allBooks.length === 0) {
       return res.json({ message: "No books found to notify about" });
     }
 
-    // Filter to books with good data AND published within the last 2 years
-    const validBooks = data.items.filter((book) => {
-      // Check if book has all required fields
-      if (
-        !(
-          book.id &&
-          book.volumeInfo?.title &&
-          book.volumeInfo?.authors &&
-          book.volumeInfo?.imageLinks?.thumbnail &&
-          book.volumeInfo?.publishedDate
-        )
-      ) {
+    // Process the books found
+
+    // Filter to books with good data AND recent publication date
+    const validBooks = allBooks.filter((book) => {
+      // Check if book has the minimum required fields
+      const hasRequiredFields = !!(
+        book.id &&
+        book.volumeInfo?.title &&
+        book.volumeInfo?.publishedDate
+      );
+
+      if (!hasRequiredFields) {
         return false;
       }
 
-      // Parse the published date
+      // Check if the book is actually recent (published within the last 2 years)
       try {
-        // Handle partial dates (YYYY or YYYY-MM format)
+        // Parse the published date
         let publishedDate;
         const dateStr = book.volumeInfo.publishedDate;
 
@@ -216,45 +196,34 @@ router.post("/notify", async (_req, res) => {
 
         // Check if the date is valid
         if (isNaN(publishedDate.getTime())) {
-          console.log(
-            `Invalid publication date for book: ${book.volumeInfo.title} - ${dateStr}`
-          );
           return false;
         }
 
-        // Strict check to ensure the book is actually recent
-        const isRecent =
-          publishedDate >= sixMonthsAgo && publishedDate <= today;
+        // Get date from 30 days ago
+        const thirtyDaysAgo = new Date();
+        thirtyDaysAgo.setDate(today.getDate() - 30);
 
-        if (!isRecent) {
-          console.log(
-            `Book not recent enough: ${
-              book.volumeInfo.title
-            } - Published: ${dateStr} (${
-              publishedDate.toISOString().split("T")[0]
-            })`
-          );
+        // Special handling for current month books
+        const isCurrentMonth =
+          publishedDate.getFullYear() === today.getFullYear() &&
+          publishedDate.getMonth() === today.getMonth();
+
+        // Check if the book is recent (published within the last 30 days) AND not in the future
+        const isRecent = publishedDate >= thirtyDaysAgo;
+        const isNotFuture = publishedDate <= today;
+
+        // Accept books from current month or within the last 30 days, but not future dates
+        if ((!isRecent && !isCurrentMonth) || !isNotFuture) {
+          return false;
         }
 
-        return isRecent;
+        return true;
       } catch (error) {
-        console.log(
-          `Error parsing date for book: ${book.volumeInfo.title} - ${error.message}`
-        );
         return false;
       }
     });
 
-    console.log(
-      `Found ${validBooks.length} valid recent books published in the last 6 months`
-    );
-
-    // Log the titles and publication dates of the valid books
-    validBooks.forEach((book) => {
-      console.log(
-        `- ${book.volumeInfo.title} (${book.volumeInfo.publishedDate}) by ${book.volumeInfo.authors[0]}`
-      );
-    });
+    // Check if we have valid books after filtering
 
     if (validBooks.length === 0) {
       return res.json({ message: "No suitable books found to notify about" });
@@ -263,10 +232,8 @@ router.post("/notify", async (_req, res) => {
     // Pick a random book to feature as a "new release"
     const bookToNotify =
       validBooks[Math.floor(Math.random() * validBooks.length)];
-    console.log(
-      `Selected book: "${bookToNotify.volumeInfo.title}" by ${bookToNotify.volumeInfo.authors[0]}`
-    );
-    console.log(`Publication date: ${bookToNotify.volumeInfo.publishedDate}`);
+
+    // Selected book for notification
 
     // Create or find a channel for this book
     let channel;
@@ -275,12 +242,8 @@ router.post("/notify", async (_req, res) => {
     });
 
     if (existingChannel) {
-      console.log(`Using existing channel for book: ${existingChannel.id}`);
       channel = existingChannel;
     } else {
-      console.log(
-        `Creating new channel for book: ${bookToNotify.volumeInfo.title}`
-      );
       // Create a new channel for this book
       channel = await prisma.channel.create({
         data: {
@@ -290,7 +253,6 @@ router.post("/notify", async (_req, res) => {
           book_data: bookToNotify,
         },
       });
-      console.log(`Created channel with ID: ${channel.id}`);
     }
 
     // Check if users have already been notified about this book in the last 30 days
@@ -299,8 +261,6 @@ router.post("/notify", async (_req, res) => {
     // Create notifications only for users who haven't been notified about this book recently
     for (const user of users) {
       try {
-        console.log(`Processing user ${user.id} (${user.email || "no email"})`);
-
         // Check if user already has a notification for this book in the last 30 days
         const existingNotification = await prisma.notification.findFirst({
           where: {
@@ -313,37 +273,40 @@ router.post("/notify", async (_req, res) => {
         });
 
         if (existingNotification) {
-          console.log(
-            `User ${user.id} already has a notification for this book, skipping`
-          );
           continue;
         }
 
+        // Format the published date nicely
+        let publishedDate = "";
+        try {
+          const dateStr = bookToNotify.volumeInfo.publishedDate;
+          const date = new Date(dateStr);
+          publishedDate = date.toLocaleDateString("en-US", {
+            year: "numeric",
+            month: "long",
+            day: "numeric",
+          });
+        } catch (error) {
+          publishedDate = bookToNotify.volumeInfo.publishedDate || "recent";
+        }
+
         // Create a notification for this user
-        const notification = await prisma.notification.create({
+        await prisma.notification.create({
           data: {
             user_id: user.id,
             channel_id: channel.id,
             book_id: bookToNotify.id,
-            content: `New release: "${bookToNotify.volumeInfo.title}" by ${bookToNotify.volumeInfo.authors[0]} is now available!`,
+            content: `NEW RELEASE: "${bookToNotify.volumeInfo.title}" by ${bookToNotify.volumeInfo.authors[0]} (Published: ${publishedDate})`,
             is_recommendation: true,
             book_data: bookToNotify,
           },
         });
 
-        console.log(
-          `Created notification ${notification.id} for user ${user.id}`
-        );
         notificationCount++;
       } catch (userError) {
-        console.error(
-          `Error creating notification for user ${user.id}:`,
-          userError
-        );
+        // Continue with next user
       }
     }
-
-    console.log(`Successfully created ${notificationCount} notifications`);
 
     return res.json({
       success: true,
@@ -353,7 +316,6 @@ router.post("/notify", async (_req, res) => {
       notificationCount,
     });
   } catch (error) {
-    console.error("Error notifying users about new releases:", error);
     res
       .status(500)
       .json({ error: "Failed to notify users about new releases" });
