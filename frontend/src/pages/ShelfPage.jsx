@@ -8,6 +8,7 @@ import { useNavigate } from "react-router-dom";
 function ShelfPage() {
   const [shelf, setShelf] = useState([]);
   const [favoriteItems, setFavoriteItems] = useState(new Set());
+  const [joinedChannels, setJoinedChannels] = useState(new Set());
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -16,9 +17,11 @@ function ShelfPage() {
     if (user) {
       loadShelf();
       loadFavoriteItems();
+      loadJoinedChannels();
     } else {
       setShelf([]);
       setFavoriteItems(new Set());
+      setJoinedChannels(new Set());
       setLoading(false);
     }
   }, [user]);
@@ -86,6 +89,94 @@ function ShelfPage() {
         setShelf((prev) => prev.filter((item) => item.book_id !== book.id));
       } else {
         alert("Failed to remove from shelf. Please try again.");
+      }
+    } catch (error) {
+      alert("Network error. Please try again.");
+    }
+  };
+
+  const loadJoinedChannels = async () => {
+    if (!user) return;
+
+    try {
+      const response = await fetch(
+        `http://localhost:3000/api/user-channels/user/${user.id}`
+      );
+
+      if (response.ok) {
+        const channelsData = await response.json();
+        const channelIds = new Set(channelsData.map((channel) => channel.id));
+        setJoinedChannels(channelIds);
+      } else {
+        setJoinedChannels(new Set());
+      }
+    } catch (error) {
+      console.error("Error loading joined channels:", error);
+      setJoinedChannels(new Set());
+    }
+  };
+
+  const handleJoinDiscussion = async (book) => {
+    if (!user) return;
+
+    try {
+      const isJoined = joinedChannels.has(book.id);
+
+      if (isJoined) {
+        // Leave the channel
+        const response = await fetch(
+          "http://localhost:3000/api/user-channels/leave",
+          {
+            method: "DELETE",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              userId: user.id,
+              bookId: book.id,
+            }),
+          }
+        );
+
+        if (response.ok) {
+          setJoinedChannels((prev) => {
+            const newJoinedChannels = new Set(prev);
+            newJoinedChannels.delete(book.id);
+            return newJoinedChannels;
+          });
+        } else {
+          alert("Failed to leave discussion. Please try again.");
+        }
+      } else {
+        // Join the channel
+        const response = await fetch(
+          "http://localhost:3000/api/user-channels/join",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              userId: user.id,
+              bookId: book.id,
+              bookTitle: book.volumeInfo.title,
+              bookData: book,
+            }),
+          }
+        );
+
+        if (response.ok) {
+          setJoinedChannels((prev) => {
+            const newJoinedChannels = new Set(prev);
+            newJoinedChannels.add(book.id);
+            return newJoinedChannels;
+          });
+
+          // Navigate to the discussion page
+          navigate(`/discussion/${book.id}`);
+        } else {
+          alert("Failed to join discussion. Please try again.");
+        }
       }
     } catch (error) {
       alert("Network error. Please try again.");
@@ -198,7 +289,12 @@ function ShelfPage() {
     <div className="shelf-page">
       <Sidebar />
       <div className="shelf-content">
-        <button className="shelf-previous" onClick={() => navigate("/dashboard")}>❮ Previous</button>
+        <button
+          className="shelf-previous"
+          onClick={() => navigate("/dashboard")}
+        >
+          ❮ Previous
+        </button>
         <div className="shelf-header">
           <h1>My Shelf ({shelf.length})</h1>
           <p>Books you've added to your shelf collection</p>
@@ -249,6 +345,8 @@ function ShelfPage() {
                   toShelf={true} // Always true since this is the shelf page
                   onToggleFavorite={() => handleToggleToFavorites(book)}
                   onToggleToShelf={() => handleRemoveFromShelf(book)}
+                  onJoinDiscussion={handleJoinDiscussion}
+                  isJoined={joinedChannels.has(book.id)}
                 />
               );
             })}

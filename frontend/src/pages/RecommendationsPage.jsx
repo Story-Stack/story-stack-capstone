@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useAuth } from "../App";
 import BookCard from "../BookCard";
 import Sidebar from "../components/FavoritesSidebar";
+import { useNavigate } from "react-router-dom";
 import "./RecommendationsPage.css";
 const recommendationsLimit = 20; // Number of recommendations to return
 
@@ -11,7 +12,9 @@ function RecommendationsPage() {
   const [error, setError] = useState(null);
   const [favorites, setFavorites] = useState(new Set());
   const [shelfItems, setShelfItems] = useState(new Set());
+  const [joinedChannels, setJoinedChannels] = useState(new Set());
   const { user } = useAuth();
+  const navigate = useNavigate();
 
   // Track when recommendations were last checked
   const [lastChecked, setLastChecked] = useState(() => {
@@ -46,6 +49,7 @@ function RecommendationsPage() {
       loadRecommendations(shouldNotify);
       loadFavorites();
       loadShelfItems();
+      loadJoinedChannels();
     }
   }, [user]);
 
@@ -200,6 +204,94 @@ function RecommendationsPage() {
           });
         } else {
           alert("Failed to add to shelf. Please try again.");
+        }
+      }
+    } catch (error) {
+      alert("Network error. Please try again.");
+    }
+  };
+
+  const loadJoinedChannels = async () => {
+    if (!user) return;
+
+    try {
+      const response = await fetch(
+        `http://localhost:3000/api/user-channels/user/${user.id}`
+      );
+
+      if (response.ok) {
+        const channelsData = await response.json();
+        const channelIds = new Set(channelsData.map((channel) => channel.id));
+        setJoinedChannels(channelIds);
+      } else {
+        setJoinedChannels(new Set());
+      }
+    } catch (error) {
+      console.error("Error loading joined channels:", error);
+      setJoinedChannels(new Set());
+    }
+  };
+
+  const handleJoinDiscussion = async (book) => {
+    if (!user) return;
+
+    try {
+      const isJoined = joinedChannels.has(book.id);
+
+      if (isJoined) {
+        // Leave the channel
+        const response = await fetch(
+          "http://localhost:3000/api/user-channels/leave",
+          {
+            method: "DELETE",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              userId: user.id,
+              bookId: book.id,
+            }),
+          }
+        );
+
+        if (response.ok) {
+          setJoinedChannels((prev) => {
+            const newJoinedChannels = new Set(prev);
+            newJoinedChannels.delete(book.id);
+            return newJoinedChannels;
+          });
+        } else {
+          alert("Failed to leave discussion. Please try again.");
+        }
+      } else {
+        // Join the channel
+        const response = await fetch(
+          "http://localhost:3000/api/user-channels/join",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              userId: user.id,
+              bookId: book.id,
+              bookTitle: book.volumeInfo.title,
+              bookData: book,
+            }),
+          }
+        );
+
+        if (response.ok) {
+          setJoinedChannels((prev) => {
+            const newJoinedChannels = new Set(prev);
+            newJoinedChannels.add(book.id);
+            return newJoinedChannels;
+          });
+
+          // Navigate to the discussion page
+          navigate(`/discussion/${book.id}`);
+        } else {
+          alert("Failed to join discussion. Please try again.");
         }
       }
     } catch (error) {
@@ -378,6 +470,8 @@ function RecommendationsPage() {
                 toShelf={shelfItems.has(book.id)}
                 onToggleFavorite={handleToggleFavorite}
                 onToggleToShelf={handleToggleToShelf}
+                onJoinDiscussion={handleJoinDiscussion}
+                isJoined={joinedChannels.has(book.id)}
               />
             ))}
           </div>
