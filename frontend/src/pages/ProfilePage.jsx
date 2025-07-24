@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "../App";
-import ProfileSideBar from "../components/ProfileSideBar";
+import Sidebar from "../components/FavoritesSidebar";
 import "./ProfilePage.css";
 
 function ProfilePage() {
@@ -101,7 +101,7 @@ function ProfilePage() {
   return (
     <div className="profile-page">
       <div className="sidebar-container">
-        <ProfileSideBar />
+        <Sidebar />
       </div>
       <div className="profile-content">
         <div className="profile-header">
