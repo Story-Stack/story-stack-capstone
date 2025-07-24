@@ -256,7 +256,9 @@ function ShelfPage() {
   if (!user) {
     return (
       <div className="shelf-page">
-        <Sidebar />
+        <div className="sidebar-container">
+          <Sidebar />
+        </div>
         <div className="shelf-content">
           <div className="shelf-header">
             <h1>My Shelf</h1>
@@ -272,7 +274,9 @@ function ShelfPage() {
   if (loading) {
     return (
       <div className="shelf-page">
-        <Sidebar />
+        <div className="sidebar-container">
+          <Sidebar />
+        </div>
         <div className="shelf-content">
           <div className="shelf-header">
             <h1>My Shelf</h1>
@@ -287,7 +291,9 @@ function ShelfPage() {
 
   return (
     <div className="shelf-page">
-      <Sidebar />
+      <div className="sidebar-container">
+        <Sidebar />
+      </div>
       <div className="shelf-content">
         <button
           className="shelf-previous"
