@@ -20,7 +20,6 @@ router.get("/", async (_req, res) => {
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(today.getDate() - 30);
 
-
     // Use a query that specifically targets new books
     const query = `subject:fiction&orderBy=newest`;
 
@@ -118,7 +117,6 @@ router.post("/notify", async (_req, res) => {
         .status(500)
         .json({ error: "Google Books API key not configured" });
     }
-
 
     // Use multiple queries to increase chances of finding good books
     const queries = [
