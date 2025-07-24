@@ -9,6 +9,8 @@ function RecommendationsPage() {
   const [recommendations, setRecommendations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [favorites, setFavorites] = useState(new Set());
+  const [shelfItems, setShelfItems] = useState(new Set());
   const { user } = useAuth();
 
   // Track when recommendations were last checked
@@ -42,8 +44,168 @@ function RecommendationsPage() {
       }
 
       loadRecommendations(shouldNotify);
+      loadFavorites();
+      loadShelfItems();
     }
   }, [user]);
+
+  const loadFavorites = async () => {
+    if (!user) return;
+
+    try {
+      const response = await fetch(
+        `http://localhost:3000/api/favorites/${user.id}`
+      );
+
+      if (response.ok) {
+        const favoritesData = await response.json();
+        const favoriteIds = new Set(favoritesData.map((item) => item.book_id));
+        setFavorites(favoriteIds);
+      } else {
+        setFavorites(new Set());
+      }
+    } catch (error) {
+      console.error("Error loading favorites:", error);
+      setFavorites(new Set());
+    }
+  };
+
+  const loadShelfItems = async () => {
+    if (!user) return;
+
+    try {
+      const response = await fetch(
+        `http://localhost:3000/api/shelf/${user.id}`
+      );
+
+      if (response.ok) {
+        const shelfData = await response.json();
+        const shelfIds = new Set(shelfData.map((item) => item.book_id));
+        setShelfItems(shelfIds);
+      } else {
+        setShelfItems(new Set());
+      }
+    } catch (error) {
+      console.error("Error loading shelf items:", error);
+      setShelfItems(new Set());
+    }
+  };
+
+  const handleToggleFavorite = async (book) => {
+    if (!user) return;
+
+    try {
+      const isFavorite = favorites.has(book.id);
+
+      if (isFavorite) {
+        // Remove from favorites
+        const response = await fetch("http://localhost:3000/api/favorites", {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            supabase_id: user.id,
+            book_id: book.id,
+          }),
+        });
+
+        if (response.ok) {
+          setFavorites((prev) => {
+            const newFavorites = new Set(prev);
+            newFavorites.delete(book.id);
+            return newFavorites;
+          });
+        } else {
+          alert("Failed to remove from favorites. Please try again.");
+        }
+      } else {
+        // Add to favorites
+        const response = await fetch("http://localhost:3000/api/favorites", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            supabase_id: user.id,
+            book_id: book.id,
+            book_title: book.volumeInfo.title,
+            book_data: book,
+          }),
+        });
+
+        if (response.ok) {
+          setFavorites((prev) => {
+            const newFavorites = new Set(prev);
+            newFavorites.add(book.id);
+            return newFavorites;
+          });
+        } else {
+          alert("Failed to add to favorites. Please try again.");
+        }
+      }
+    } catch (error) {
+      alert("Network error. Please try again.");
+    }
+  };
+
+  const handleToggleToShelf = async (book) => {
+    if (!user) return;
+
+    try {
+      const isOnShelf = shelfItems.has(book.id);
+
+      if (isOnShelf) {
+        // Remove from shelf
+        const response = await fetch("http://localhost:3000/api/shelf", {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            supabase_id: user.id,
+            book_id: book.id,
+          }),
+        });
+
+        if (response.ok) {
+          setShelfItems((prev) => {
+            const newShelfItems = new Set(prev);
+            newShelfItems.delete(book.id);
+            return newShelfItems;
+          });
+        } else {
+          alert("Failed to remove from shelf. Please try again.");
+        }
+      } else {
+        // Add to shelf
+        const response = await fetch("http://localhost:3000/api/shelf", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            supabase_id: user.id,
+            book_id: book.id,
+            book_title: book.volumeInfo.title,
+            book_data: book,
+          }),
+        });
+
+        if (response.ok) {
+          setShelfItems((prev) => {
+            const newShelfItems = new Set(prev);
+            newShelfItems.add(book.id);
+            return newShelfItems;
+          });
+        } else {
+          alert("Failed to add to shelf. Please try again.");
+        }
+      }
+    } catch (error) {
+      alert("Network error. Please try again.");
+    }
+  };
 
   const loadRecommendations = async (withNotification = false) => {
     if (!user) return;
@@ -209,7 +371,14 @@ function RecommendationsPage() {
         ) : (
           <div className="recommendations-grid">
             {recommendations.map((book) => (
-              <BookCard key={book.id} book={book} />
+              <BookCard
+                key={book.id}
+                book={book}
+                isFavorite={favorites.has(book.id)}
+                toShelf={shelfItems.has(book.id)}
+                onToggleFavorite={handleToggleFavorite}
+                onToggleToShelf={handleToggleToShelf}
+              />
             ))}
           </div>
         )}

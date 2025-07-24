@@ -239,9 +239,7 @@ function NotificationBell() {
         ref={bellRef}
       >
         <i className="fas fa-bell"></i>
-        {unreadCount > 0 && (
-          <span className="notification-badge">{unreadCount}</span>
-        )}
+       
       </div>
 
       {showDropdown && (
