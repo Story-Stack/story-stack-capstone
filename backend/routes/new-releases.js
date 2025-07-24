@@ -15,13 +15,13 @@ router.get("/", async (_req, res) => {
         .json({ error: "Google Books API key not configured" });
     }
 
-    // Get the current date and date from 6 months ago (for truly recent books)
+    // Get the current date and date from 12 months ago (for recent books)
     const today = new Date();
-    const sixMonthsAgo = new Date();
-    sixMonthsAgo.setMonth(today.getMonth() - 6);
+    const oneYearAgo = new Date();
+    oneYearAgo.setFullYear(today.getFullYear() - 1);
 
     // Format dates as YYYY-MM-DD for the API query
-    const startDate = sixMonthsAgo.toISOString().split("T")[0];
+    const startDate = oneYearAgo.toISOString().split("T")[0];
     const endDate = today.toISOString().split("T")[0];
 
     // Use a query that specifically targets new books
@@ -76,7 +76,7 @@ router.get("/", async (_req, res) => {
 
           // Strict check to ensure the book is actually recent
           const isRecent =
-            publishedDate >= sixMonthsAgo && publishedDate <= today;
+            publishedDate >= oneYearAgo && publishedDate <= today;
 
           return isRecent;
         } catch (error) {
@@ -240,13 +240,27 @@ router.post("/notify", async (_req, res) => {
           continue;
         }
 
+        // Format the published date nicely
+        let publishedDate = "";
+        try {
+          const dateStr = bookToNotify.volumeInfo.publishedDate;
+          const date = new Date(dateStr);
+          publishedDate = date.toLocaleDateString('en-US', { 
+            year: 'numeric', 
+            month: 'long', 
+            day: 'numeric' 
+          });
+        } catch (error) {
+          publishedDate = bookToNotify.volumeInfo.publishedDate || "recent";
+        }
+
         // Create a notification for this user
         const notification = await prisma.notification.create({
           data: {
             user_id: user.id,
             channel_id: channel.id,
             book_id: bookToNotify.id,
-            content: `New Release: "${bookToNotify.volumeInfo.title}" by ${bookToNotify.volumeInfo.authors[0]} is now available!`,
+            content: `NEW RELEASE: "${bookToNotify.volumeInfo.title}" by ${bookToNotify.volumeInfo.authors[0]} (Published: ${publishedDate})`,
             is_recommendation: true,
             book_data: bookToNotify,
           },
