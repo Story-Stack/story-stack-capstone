@@ -1,5 +1,9 @@
 const express = require("express");
 const { PrismaClient } = require("../generated/prisma");
+const {
+  checkChannelActivity,
+  createHighActivityNotifications,
+} = require("../services/notificationService");
 
 const router = express.Router();
 const prisma = new PrismaClient();
@@ -110,56 +114,28 @@ router.post("/", async (req, res) => {
 
     console.log("Message created successfully:", message);
 
-    // Get channel information
-    const channel = await prisma.channel.findUnique({
-      where: {
-        id: channelId,
-      },
-    });
 
-    // Get all users in the channel except the message sender
-    const channelMembers = await prisma.userChannel.findMany({
-      where: {
-        channel_id: channelId,
-        user_id: {
-          not: user.id, // Exclude the message sender
-        },
-      },
-      select: {
-        user_id: true,
-      },
-    });
-
-    // Create notifications for all channel members
-    const senderName =
-      user.first_name || user.email.split("@")[0] || "Anonymous";
-    const notificationContent = `${senderName} posted in ${
-      channel.book_title
-    }: "${content.substring(0, 50)}${content.length > 50 ? "..." : ""}"`;
-
-    // Create notifications using createMany now that the Prisma client has been regenerated
+    // Check if the channel has high activity before sending notifications
     try {
-      console.log(
-        "Creating notifications for channel members:",
-        channelMembers.length
-      );
+      console.log("Checking channel activity for notifications...");
 
-      if (channelMembers.length > 0) {
-        await prisma.notification.createMany({
-          data: channelMembers.map((member) => ({
-            user_id: member.user_id,
-            channel_id: channelId,
-            message_id: message.id,
-            content: notificationContent,
-            is_read: false,
-          })),
-        });
+      // Check if the channel meets the high activity threshold
+      const hasHighActivity = await checkChannelActivity(channelId);
+
+      if (hasHighActivity) {
+        console.log(
+          `High activity detected in channel ${channelId}. Creating notifications...`
+        );
+        // Create notifications for all channel members since high activity threshold is met
+        await createHighActivityNotifications(channelId, user.id, message.id);
+      } else {
+        console.log(
+          `Channel ${channelId} does not meet high activity threshold. No notifications sent.`
+        );
       }
-
-      console.log("Successfully created notifications");
     } catch (notificationError) {
       // Log the error but don't fail the message creation
-      console.error("Error creating notifications:", notificationError);
+      console.error("Error in notification processing:", notificationError);
       console.error("Notification error details:", {
         name: notificationError.name,
         message: notificationError.message,
@@ -171,7 +147,7 @@ router.post("/", async (req, res) => {
     const formattedMessage = {
       id: message.id,
       content: message.content,
-      sender: senderName,
+      sender: user.first_name || user.email.split("@")[0] || "Anonymous",
       created_at: message.createdAt,
       userId: message.userId,
       supabase_id: message.user.supabase_id, // Include Supabase ID for frontend comparison
