@@ -15,14 +15,11 @@ router.get("/", async (_req, res) => {
         .json({ error: "Google Books API key not configured" });
     }
 
-    // Get the current date and date from 12 months ago (for recent books)
+    // Get the current date and date from 30 days ago (for recent books)
     const today = new Date();
-    const oneYearAgo = new Date();
-    oneYearAgo.setFullYear(today.getFullYear() - 1);
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(today.getDate() - 30);
 
-    // Format dates as YYYY-MM-DD for the API query
-    const startDate = oneYearAgo.toISOString().split("T")[0];
-    const endDate = today.toISOString().split("T")[0];
 
     // Use a query that specifically targets new books
     const query = `subject:fiction&orderBy=newest`;
@@ -41,7 +38,6 @@ router.get("/", async (_req, res) => {
 
     const data = await response.json();
 
-    // Filter to books with good data AND published within the last 6 months
     const newReleases =
       data.items?.filter((book) => {
         // Check if book has all required fields
@@ -74,11 +70,23 @@ router.get("/", async (_req, res) => {
             return false;
           }
 
-          // Strict check to ensure the book is actually recent
-          const isRecent =
-            publishedDate >= oneYearAgo && publishedDate <= today;
+          // Get date from 30 days ago
+          const thirtyDaysAgo = new Date();
+          thirtyDaysAgo.setDate(today.getDate() - 30);
 
-          return isRecent;
+          // Special handling for current month books
+          const isCurrentMonth =
+            publishedDate.getFullYear() === today.getFullYear() &&
+            publishedDate.getMonth() === today.getMonth();
+
+          // Make sure the book is recent AND not in the future
+          const isRecent = publishedDate >= thirtyDaysAgo;
+          const isNotFuture = publishedDate <= today;
+
+          // Accept books from current month or within the last 30 days
+          const isValid = (isRecent || isCurrentMonth) && isNotFuture;
+
+          return isValid;
         } catch (error) {
           return false;
         }
@@ -106,61 +114,71 @@ router.post("/notify", async (_req, res) => {
     // Get new releases using a reliable approach
     const apiKey = process.env.GOOGLE_BOOKS_API_KEY;
     if (!apiKey) {
-      console.error("Google Books API key not configured");
       return res
         .status(500)
         .json({ error: "Google Books API key not configured" });
     }
 
-    // Get the current date and date from 6 months ago (for truly recent books)
-    const today = new Date();
-    const sixMonthsAgo = new Date();
-    sixMonthsAgo.setMonth(today.getMonth() - 6);
 
-    // Format dates as YYYY-MM-DD for the API query
-    const startDate = sixMonthsAgo.toISOString().split("T")[0];
-    const endDate = today.toISOString().split("T")[0];
+    // Use multiple queries to increase chances of finding good books
+    const queries = [
+      "subject:fiction",
+      "subject:novel",
+      "subject:thriller",
+      "subject:romance",
+      "subject:fantasy",
+      "subject:mystery",
+      "inauthor:stephen+king", // Popular author example
+      "inauthor:j+k+rowling", // Popular author example
+      "inauthor:james+patterson", // Popular author example
+    ];
 
-    // Use a query that specifically targets new books with publication date filtering
-    const query = `subject:fiction&orderBy=newest`;
+    let allBooks = [];
 
-    const url = `https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(
-      query
-    )}&orderBy=newest&maxResults=40&key=${apiKey}`;
+    for (const queryString of queries) {
+      const url = `https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(
+        queryString
+      )}&orderBy=newest&maxResults=40&key=${apiKey}`;
 
-    const response = await fetch(url);
+      try {
+        const response = await fetch(url);
 
-    if (!response.ok) {
-      return res.status(response.status).json({
-        error: "Failed to fetch new releases from Google Books API",
-        details: `Status: ${response.status}, ${response.statusText}`,
-      });
+        if (!response.ok) {
+          continue;
+        }
+
+        const data = await response.json();
+
+        if (data.items && data.items.length > 0) {
+          allBooks = [...allBooks, ...data.items];
+        }
+      } catch (error) {
+        // Continue with next query
+      }
     }
 
-    const data = await response.json();
-
-    if (!data.items || data.items.length === 0) {
+    if (allBooks.length === 0) {
       return res.json({ message: "No books found to notify about" });
     }
 
-    // Filter to books with good data AND published within the last 2 years
-    const validBooks = data.items.filter((book) => {
-      // Check if book has all required fields
-      if (
-        !(
-          book.id &&
-          book.volumeInfo?.title &&
-          book.volumeInfo?.authors &&
-          book.volumeInfo?.imageLinks?.thumbnail &&
-          book.volumeInfo?.publishedDate
-        )
-      ) {
+    // Process the books found
+
+    // Filter to books with good data AND recent publication date
+    const validBooks = allBooks.filter((book) => {
+      // Check if book has the minimum required fields
+      const hasRequiredFields = !!(
+        book.id &&
+        book.volumeInfo?.title &&
+        book.volumeInfo?.publishedDate
+      );
+
+      if (!hasRequiredFields) {
         return false;
       }
 
-      // Parse the published date
+      // Check if the book is actually recent (published within the last 2 years)
       try {
-        // Handle partial dates (YYYY or YYYY-MM format)
+        // Parse the published date
         let publishedDate;
         const dateStr = book.volumeInfo.publishedDate;
 
@@ -181,15 +199,31 @@ router.post("/notify", async (_req, res) => {
           return false;
         }
 
-        // Strict check to ensure the book is actually recent
-        const isRecent =
-          publishedDate >= sixMonthsAgo && publishedDate <= today;
+        // Get date from 30 days ago
+        const thirtyDaysAgo = new Date();
+        thirtyDaysAgo.setDate(today.getDate() - 30);
 
-        return isRecent;
+        // Special handling for current month books
+        const isCurrentMonth =
+          publishedDate.getFullYear() === today.getFullYear() &&
+          publishedDate.getMonth() === today.getMonth();
+
+        // Check if the book is recent (published within the last 30 days) AND not in the future
+        const isRecent = publishedDate >= thirtyDaysAgo;
+        const isNotFuture = publishedDate <= today;
+
+        // Accept books from current month or within the last 30 days, but not future dates
+        if ((!isRecent && !isCurrentMonth) || !isNotFuture) {
+          return false;
+        }
+
+        return true;
       } catch (error) {
         return false;
       }
     });
+
+    // Check if we have valid books after filtering
 
     if (validBooks.length === 0) {
       return res.json({ message: "No suitable books found to notify about" });
@@ -198,6 +232,8 @@ router.post("/notify", async (_req, res) => {
     // Pick a random book to feature as a "new release"
     const bookToNotify =
       validBooks[Math.floor(Math.random() * validBooks.length)];
+
+    // Selected book for notification
 
     // Create or find a channel for this book
     let channel;
@@ -245,17 +281,17 @@ router.post("/notify", async (_req, res) => {
         try {
           const dateStr = bookToNotify.volumeInfo.publishedDate;
           const date = new Date(dateStr);
-          publishedDate = date.toLocaleDateString('en-US', { 
-            year: 'numeric', 
-            month: 'long', 
-            day: 'numeric' 
+          publishedDate = date.toLocaleDateString("en-US", {
+            year: "numeric",
+            month: "long",
+            day: "numeric",
           });
         } catch (error) {
           publishedDate = bookToNotify.volumeInfo.publishedDate || "recent";
         }
 
         // Create a notification for this user
-        const notification = await prisma.notification.create({
+        await prisma.notification.create({
           data: {
             user_id: user.id,
             channel_id: channel.id,

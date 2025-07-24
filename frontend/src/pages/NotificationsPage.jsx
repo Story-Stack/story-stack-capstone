@@ -70,6 +70,30 @@ function NotificationsPage() {
     }
   };
 
+  const handleDeleteNotification = async (e, notificationId) => {
+    e.stopPropagation(); // Prevent triggering the parent onClick event
+
+    try {
+      const response = await fetch(
+        `http://localhost:3000/api/notifications/${notificationId}`,
+        {
+          method: "DELETE",
+        }
+      );
+
+      if (response.ok) {
+        // Remove the notification from the state
+        setNotifications((prevNotifications) =>
+          prevNotifications.filter((n) => n.id !== notificationId)
+        );
+      } else {
+        console.error("Failed to delete notification");
+      }
+    } catch (error) {
+      console.error("Error deleting notification:", error);
+    }
+  };
+
   const handleMarkAllRead = async () => {
     if (!user || notifications.length === 0) return;
 
@@ -146,11 +170,12 @@ function NotificationsPage() {
                     onClick={() => handleNotificationClick(notification)}
                   >
                     <div className="notification-content">
-                      {notification.isRecommendation && (
+                      {(notification.isRecommendation ||
+                        (notification.content &&
+                          notification.content.includes("NEW RELEASE"))) && (
                         <div className="recommendation-badge">
                           {notification.content &&
-                          (notification.content.toLowerCase().includes("new release") ||
-                           notification.content.toLowerCase().includes("now available"))
+                          notification.content.includes("NEW RELEASE")
                             ? "🆕 New Release"
                             : "📚 Recommendation"}
                         </div>
@@ -199,9 +224,20 @@ function NotificationsPage() {
                       <span className="notification-time">
                         {formatDate(notification.createdAt)}
                       </span>
-                      {!notification.isRead && (
-                        <span className="unread-indicator"></span>
-                      )}
+                      <div className="notification-actions">
+                        {!notification.isRead && (
+                          <span className="unread-indicator"></span>
+                        )}
+                        <button
+                          className="delete-notification-btn"
+                          onClick={(e) =>
+                            handleDeleteNotification(e, notification.id)
+                          }
+                          aria-label="Delete notification"
+                        >
+                          ×
+                        </button>
+                      </div>
                     </div>
                   </div>
                 ))}
@@ -209,7 +245,6 @@ function NotificationsPage() {
             ) : (
               <div className="no-notifications">
                 <p>You don't have any notifications yet.</p>
-
               </div>
             )}
           </div>
