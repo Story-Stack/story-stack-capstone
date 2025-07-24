@@ -7,6 +7,10 @@
 }
 
 .sidebar-container {
+  flex: 0 0 250px;
+}
+
+.sidebar-container {
   width: 250px;
   flex-shrink: 0;
 }

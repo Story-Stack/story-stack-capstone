@@ -13,6 +13,7 @@ model User {
   first_name      String?             @db.VarChar(255)
   last_name       String?             @db.VarChar(255)
   email           String              @unique @db.VarChar(255)
+  bio             String?
   created_at      DateTime            @default(now())
   supabase_id     String              @unique @db.VarChar(255)
   updated_at      DateTime            @updatedAt

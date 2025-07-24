@@ -114,7 +114,6 @@ router.post("/", async (req, res) => {
 
     console.log("Message created successfully:", message);
 
-
     // Check if the channel has high activity before sending notifications
     try {
       console.log("Checking channel activity for notifications...");

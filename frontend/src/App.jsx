@@ -20,6 +20,7 @@ import ShelfPage from "./pages/ShelfPage";
 import RecommendationsPage from "./pages/RecommendationsPage";
 import DiscussionPage from "./pages/DiscussionPage";
 import NotificationsPage from "./pages/NotificationsPage";
+import ProfilePage from "./pages/ProfilePage";
 import SignIn from "./pages/authentication-pages/SignIn";
 import Register from "./pages/authentication-pages/Register";
 
@@ -119,6 +120,7 @@ const Navigation = () => {
             {currentPath !== "/favorites" && (
               <a href="/favorites">My Favorites</a>
             )}
+            {currentPath !== "/profile" && <a href="/profile">My Profile</a>}
 
             <span className="user-greeting">Welcome, {user.email}!</span>
           </>
@@ -389,6 +391,15 @@ function App() {
                   element={
                     <ProtectedRoute>
                       <NotificationsPage />
+                    </ProtectedRoute>
+                  }
+                />
+
+                <Route
+                  path="/profile"
+                  element={
+                    <ProtectedRoute>
+                      <ProfilePage />
                     </ProtectedRoute>
                   }
                 />

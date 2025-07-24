@@ -256,7 +256,9 @@ function FavoritesPage() {
   if (!user) {
     return (
       <div className="favorites-page">
-        <Sidebar />
+        <div className="sidebar-container">
+          <Sidebar />
+        </div>
         <div className="favorites-content">
           <div className="favorites-header">
             <h1>My Favorites</h1>
@@ -272,7 +274,9 @@ function FavoritesPage() {
   if (loading) {
     return (
       <div className="favorites-page">
-        <Sidebar />
+        <div className="sidebar-container">
+          <Sidebar />
+        </div>
         <div className="favorites-content">
           <div className="favorites-header">
             <h1>My Favorites</h1>
@@ -287,7 +291,9 @@ function FavoritesPage() {
 
   return (
     <div className="favorites-page">
-      <Sidebar />
+      <div className="sidebar-container">
+        <Sidebar />
+      </div>
       <div className="favorites-content">
         <button
           className="favorites-previous"

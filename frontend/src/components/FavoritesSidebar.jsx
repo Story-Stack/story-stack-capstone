@@ -130,9 +130,26 @@ function Sidebar() {
     navigate("/notifications");
   };
 
+  const handleProfileClick = () => {
+    if (!user) {
+      alert("Please sign in to view your profile");
+      return;
+    }
+    navigate("/profile");
+  };
+
   return (
     <div className="sidebar">
       <nav className="sidebar-nav">
+        <button
+          className={`sidebar-tab ${
+            location.pathname === "/profile" ? "active" : ""
+          }`}
+          onClick={handleProfileClick}
+        >
+          <span className="tab-icon">👤</span>
+          <span className="tab-text">My Profile</span>
+        </button>
         <button
           className={`sidebar-tab ${
             location.pathname === "/favorites" ? "active" : ""
