@@ -24,6 +24,10 @@ model User {
   shelf_items     ShelfItem[]
   category_scores UserCategoryScore[]
   joined_channels UserChannel[]
+  num_followers   Int                 @default(0)
+  num_following   Int                 @default(0)
+  followers       UserFollows[]       @relation("UserFollowers")
+  following       UserFollows[]       @relation("UserFollowing")
 }
 
 model Favorite {
@@ -129,4 +133,15 @@ model Notification {
   channel           Channel  @relation(fields: [channel_id], references: [id], onDelete: Cascade)
   message           Message? @relation(fields: [message_id], references: [id])
   user              User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+}
+
+model UserFollows {
+  id           Int      @id @default(autoincrement())
+  follower_id  Int
+  following_id Int
+  created_at   DateTime @default(now())
+  follower     User     @relation("UserFollowers", fields: [follower_id], references: [id], onDelete: Cascade)
+  following    User     @relation("UserFollowing", fields: [following_id], references: [id], onDelete: Cascade)
+
+  @@unique([follower_id, following_id])
 }
