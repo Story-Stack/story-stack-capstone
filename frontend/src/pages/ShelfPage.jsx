@@ -30,9 +30,7 @@ function ShelfPage() {
     if (!user) return;
 
     try {
-      const response = await fetch(
-        `http://localhost:3000/api/favorites/${user.id}`
-      );
+      const response = await fetch(`/api/favorites/${user.id}`);
 
       if (response.ok) {
         const favoritesData = await response.json();
@@ -42,7 +40,6 @@ function ShelfPage() {
         setFavoriteItems(new Set());
       }
     } catch (error) {
-      alert("Error loading favorite items:", error);
       setFavoriteItems(new Set());
     }
   };
@@ -52,9 +49,7 @@ function ShelfPage() {
 
     try {
       setLoading(true);
-      const response = await fetch(
-        `http://localhost:3000/api/shelf/${user.id}`
-      );
+      const response = await fetch(`/api/shelf/${user.id}`);
 
       if (response.ok) {
         const shelfData = await response.json();
@@ -73,7 +68,7 @@ function ShelfPage() {
     if (!user) return;
 
     try {
-      const response = await fetch("http://localhost:3000/api/shelf", {
+      const response = await fetch("/api/shelf", {
         method: "DELETE",
         headers: {
           "Content-Type": "application/json",
@@ -88,20 +83,15 @@ function ShelfPage() {
         // Remove from local state
         setShelf((prev) => prev.filter((item) => item.book_id !== book.id));
       } else {
-        alert("Failed to remove from shelf. Please try again.");
       }
-    } catch (error) {
-      alert("Network error. Please try again.");
-    }
+    } catch (error) {}
   };
 
   const loadJoinedChannels = async () => {
     if (!user) return;
 
     try {
-      const response = await fetch(
-        `http://localhost:3000/api/user-channels/user/${user.id}`
-      );
+      const response = await fetch(`/api/user-channels/user/${user.id}`);
 
       if (response.ok) {
         const channelsData = await response.json();
@@ -124,19 +114,16 @@ function ShelfPage() {
 
       if (isJoined) {
         // Leave the channel
-        const response = await fetch(
-          "http://localhost:3000/api/user-channels/leave",
-          {
-            method: "DELETE",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              userId: user.id,
-              bookId: book.id,
-            }),
-          }
-        );
+        const response = await fetch("/api/user-channels/leave", {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            userId: user.id,
+            bookId: book.id,
+          }),
+        });
 
         if (response.ok) {
           setJoinedChannels((prev) => {
@@ -145,25 +132,21 @@ function ShelfPage() {
             return newJoinedChannels;
           });
         } else {
-          alert("Failed to leave discussion. Please try again.");
         }
       } else {
         // Join the channel
-        const response = await fetch(
-          "http://localhost:3000/api/user-channels/join",
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              userId: user.id,
-              bookId: book.id,
-              bookTitle: book.volumeInfo.title,
-              bookData: book,
-            }),
-          }
-        );
+        const response = await fetch("/api/user-channels/join", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            userId: user.id,
+            bookId: book.id,
+            bookTitle: book.volumeInfo.title,
+            bookData: book,
+          }),
+        });
 
         if (response.ok) {
           setJoinedChannels((prev) => {
@@ -175,12 +158,9 @@ function ShelfPage() {
           // Navigate to the discussion page
           navigate(`/discussion/${book.id}`);
         } else {
-          alert("Failed to join discussion. Please try again.");
         }
       }
-    } catch (error) {
-      alert("Network error. Please try again.");
-    }
+    } catch (error) {}
   };
 
   const handleToggleToFavorites = async (book) => {
@@ -188,9 +168,7 @@ function ShelfPage() {
 
     try {
       // Check if book is already in favorites by making a request
-      const checkResponse = await fetch(
-        `http://localhost:3000/api/favorites/${user.id}`
-      );
+      const checkResponse = await fetch(`/api/favorites/${user.id}`);
 
       let isFavorite = false;
       if (checkResponse.ok) {
@@ -200,7 +178,7 @@ function ShelfPage() {
 
       if (isFavorite) {
         // Remove from favorites
-        const response = await fetch("http://localhost:3000/api/favorites", {
+        const response = await fetch("/api/favorites", {
           method: "DELETE",
           headers: {
             "Content-Type": "application/json",
@@ -219,11 +197,10 @@ function ShelfPage() {
             return newFavoriteItems;
           });
         } else {
-          alert("Failed to remove from favorites. Please try again.");
         }
       } else {
         // Add to favorites
-        const response = await fetch("http://localhost:3000/api/favorites", {
+        const response = await fetch("/api/favorites", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -247,10 +224,7 @@ function ShelfPage() {
           alert("Failed to add to favorites. Please try again.");
         }
       }
-    } catch (error) {
-      console.error("Error toggling favorites:", error);
-      alert("Network error. Please try again.");
-    }
+    } catch (error) {}
   };
 
   if (!user) {

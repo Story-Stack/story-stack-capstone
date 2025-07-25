@@ -58,7 +58,7 @@ function RecommendationsPage() {
 
     try {
       const response = await fetch(
-        `http://localhost:3000/api/favorites/${user.id}`
+        `/api/recommendations/${user.id}${notifyParam}`
       );
 
       if (response.ok) {
@@ -78,9 +78,7 @@ function RecommendationsPage() {
     if (!user) return;
 
     try {
-      const response = await fetch(
-        `http://localhost:3000/api/shelf/${user.id}`
-      );
+      const response = await fetch(`/api/shelf/${user.id}`);
 
       if (response.ok) {
         const shelfData = await response.json();
@@ -103,7 +101,7 @@ function RecommendationsPage() {
 
       if (isFavorite) {
         // Remove from favorites
-        const response = await fetch("http://localhost:3000/api/favorites", {
+        const response = await fetch("/api/favorites", {
           method: "DELETE",
           headers: {
             "Content-Type": "application/json",
@@ -125,7 +123,7 @@ function RecommendationsPage() {
         }
       } else {
         // Add to favorites
-        const response = await fetch("http://localhost:3000/api/favorites", {
+        const response = await fetch("/api/favorites", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -161,7 +159,7 @@ function RecommendationsPage() {
 
       if (isOnShelf) {
         // Remove from shelf
-        const response = await fetch("http://localhost:3000/api/shelf", {
+        const response = await fetch("/api/shelf", {
           method: "DELETE",
           headers: {
             "Content-Type": "application/json",
@@ -183,7 +181,7 @@ function RecommendationsPage() {
         }
       } else {
         // Add to shelf
-        const response = await fetch("http://localhost:3000/api/shelf", {
+        const response = await fetch("/api/shelf", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -215,9 +213,7 @@ function RecommendationsPage() {
     if (!user) return;
 
     try {
-      const response = await fetch(
-        `http://localhost:3000/api/user-channels/user/${user.id}`
-      );
+      const response = await fetch(`/api/user-channels/user/${user.id}`);
 
       if (response.ok) {
         const channelsData = await response.json();
@@ -240,19 +236,16 @@ function RecommendationsPage() {
 
       if (isJoined) {
         // Leave the channel
-        const response = await fetch(
-          "http://localhost:3000/api/user-channels/leave",
-          {
-            method: "DELETE",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              userId: user.id,
-              bookId: book.id,
-            }),
-          }
-        );
+        const response = await fetch("/api/user-channels/leave", {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            userId: user.id,
+            bookId: book.id,
+          }),
+        });
 
         if (response.ok) {
           setJoinedChannels((prev) => {
@@ -265,21 +258,18 @@ function RecommendationsPage() {
         }
       } else {
         // Join the channel
-        const response = await fetch(
-          "http://localhost:3000/api/user-channels/join",
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              userId: user.id,
-              bookId: book.id,
-              bookTitle: book.volumeInfo.title,
-              bookData: book,
-            }),
-          }
-        );
+        const response = await fetch("/api/user-channels/join", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            userId: user.id,
+            bookId: book.id,
+            bookTitle: book.volumeInfo.title,
+            bookData: book,
+          }),
+        });
 
         if (response.ok) {
           setJoinedChannels((prev) => {
