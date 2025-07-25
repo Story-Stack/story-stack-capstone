@@ -67,9 +67,7 @@ function BookModal({
     } = await supabase.auth.getUser();
     if (user) {
       try {
-        const response = await fetch(
-          `http://localhost:3000/api/users/supabase/${user.id}`
-        );
+        const response = await fetch(`/api/users/supabase/${user.id}`);
         if (response.ok) {
           const userData = await response.json();
           setUser(userData);
@@ -95,9 +93,7 @@ function BookModal({
 
   const fetchComments = async () => {
     try {
-      const response = await fetch(
-        `http://localhost:3000/api/comments/book/${book.id}`
-      );
+      const response = await fetch(`/api/comments/book/${book.id}`);
       if (response.ok) {
         const commentsData = await response.json();
         setComments(commentsData);
@@ -124,12 +120,15 @@ function BookModal({
       } else {
         // to get the database user ID from the supabase ID
         try {
-          const userResponse = await fetch(`http://localhost:3000/api/users/supabase/${user.id}`);
+          const userResponse = await fetch(`/api/users/supabase/${user.id}`);
           if (userResponse.ok) {
             const userData = await userResponse.json();
             userId = userData.id; // Get the numeric database ID
           } else {
-            console.error("Failed to get user data for comment:", userResponse.status);
+            console.error(
+              "Failed to get user data for comment:",
+              userResponse.status
+            );
             throw new Error("Failed to get user data");
           }
         } catch (error) {
@@ -153,7 +152,7 @@ function BookModal({
 
       console.log("Sending comment with data:", commentData);
 
-      const response = await fetch("http://localhost:3000/api/comments", {
+      const response = await fetch("/api/comments", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

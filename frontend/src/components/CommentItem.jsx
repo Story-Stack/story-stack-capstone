@@ -1,4 +1,3 @@
-// No need to import React with modern JSX transform
 import { useEffect, useRef } from "react";
 import "./CommentItem.css";
 

@@ -53,9 +53,14 @@ function NotificationsPage() {
       );
 
       // Navigate to the appropriate page based on notification type
-      if (notification.isRecommendation) {
+      if (notification.comment_id) {
+        // For comment notifications, navigate to the book page with comment highlighted
+        navigate(
+          `/book/${notification.bookId}?comment=${notification.comment_id}`
+        );
+      } else if (notification.isRecommendation) {
         // For recommendation notifications, navigate to the book details page
-        navigate(`/discussion/${notification.bookId}`);
+        navigate(`/book/${notification.bookId}`);
       } else {
         // For regular notifications, navigate to the discussion page
         navigate(`/discussion/${notification.bookId}`);

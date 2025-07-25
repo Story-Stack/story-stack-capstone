@@ -9,6 +9,7 @@ const prisma = new PrismaClient();
 router.get("/user/:userId", async (req, res) => {
   try {
     const { userId } = req.params;
+    console.log("Getting notifications for user with supabase_id:", userId);
 
     // Find the user by supabase_id (since frontend sends supabase user ID)
     const user = await prisma.user.findUnique({
@@ -18,9 +19,12 @@ router.get("/user/:userId", async (req, res) => {
     });
 
     if (!user) {
+      console.log("User not found with supabase_id:", userId);
       // Return empty array instead of 404 to avoid errors in the frontend
       return res.json([]);
     }
+
+    console.log("Found user with ID:", user.id, "Email:", user.email);
 
     // Get all notifications for the user, not just unread ones
     const notifications = await prisma.notification.findMany({
@@ -37,39 +41,46 @@ router.get("/user/:userId", async (req, res) => {
       },
     });
 
-    // Format notifications for frontend
+
+
+
+
 
     const formattedNotifications = notifications.map((notification) => {
       try {
+
         const formatted = {
           id: notification.id,
           content: notification.content,
           channelId: notification.channel_id,
           messageId: notification.message_id,
-          comment_id: notification.comment_id, // Include comment_id
-          bookId:
-            notification.book_id ||
-            (notification.channel ? notification.channel.book_id : null), // Use direct book_id if available
+          bookId: notification.channel ? notification.channel.book_id : null,
           bookTitle: notification.channel
             ? notification.channel.book_title
             : "Unknown Book",
           createdAt: notification.created_at,
           isRead: notification.is_read,
-          isRecommendation: notification.is_recommendation || false,
-          bookData: notification.book_data || null,
+          // Add default fields
+          comment_id: null,
+          isRecommendation: false
         };
+
+        console.log("Formatted notification:", formatted);
         return formatted;
       } catch (error) {
+        console.error("Error formatting notification:", error);
         // Return a minimal notification to prevent the entire request from failing
         return {
           id: notification.id,
           content: notification.content || "New notification",
           createdAt: notification.created_at,
           isRead: notification.is_read || false,
-          isRecommendation: notification.is_recommendation || false,
+          isRecommendation: false,
         };
       }
     });
+
+    console.log("Returning formatted notifications:", formattedNotifications.length);
 
     res.json(formattedNotifications);
   } catch (error) {
@@ -142,15 +153,7 @@ router.post("/recommendation", async (req, res) => {
       },
     });
 
-    // Trigger a refresh of notifications for the user
-    // This is a workaround to ensure the frontend gets the new notification
-    try {
-      await fetch(`http://localhost:3000/api/notifications/user/${userId}`, {
-        method: "GET",
-      });
-    } catch (refreshError) {
-      // Continue even if refresh fails
-    }
+   
 
     res.status(201).json({
       id: notification.id,

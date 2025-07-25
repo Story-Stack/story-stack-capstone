@@ -186,6 +186,10 @@ function NotificationBell() {
         navigate(
           `/book/${notification.bookId}?comment=${notification.comment_id}`
         );
+      } else if (notification.isRecommendation) {
+        // For recommendation notifications, navigate to the book details
+        console.log(`Navigating to book details: /book/${notification.bookId}`);
+        navigate(`/book/${notification.bookId}`);
       } else {
         // Navigate to the discussion page for this book/channel
         console.log(

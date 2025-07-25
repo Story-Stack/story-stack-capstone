@@ -1,10 +1,6 @@
 const express = require("express");
 const { PrismaClient } = require("../generated/prisma");
-const {
-  shouldCreateNotification,
-  containsBadWords,
-  countWords,
-} = require("../utils/commentFilters");
+const { shouldCreateNotification, containsBadWords, countWords } = require("../utils/commentFilters");
 
 const router = express.Router();
 const prisma = new PrismaClient();
@@ -223,11 +219,18 @@ router.post("/", async (req, res) => {
 
     console.log("Comment created successfully:", comment.id);
 
-    // Create notification if this is a reply to someone else's comment
-    if (
+
+    // If comment contains bad words, we should NOT create a notification
+    if (containsBadWords(content)) {
+      console.log("NOTIFICATION BLOCKED - Comment contains bad words");
+    }
+    // create notification if this is a reply to someone else's comment
+    // AND the comment passes our notification criteria (no bad words, sufficient length)
+    else if (
       parentComment &&
       parentCommentUser &&
-      parentCommentUser.id !== parseInt(userId)
+      parentCommentUser.id !== parseInt(userId) &&
+      shouldCreateNotification(content) // Check if notification should be created
     ) {
       try {
         console.log("Creating notification for reply to comment");
@@ -266,23 +269,19 @@ router.post("/", async (req, res) => {
         )}${content.length > 50 ? "..." : ""}"`;
 
         // Create notification for the parent comment author
+        // Only include fields that exist in the database schema
         const notification = await prisma.notification.create({
           data: {
             user_id: parentCommentUser.id,
             channel_id: channel.id,
-            comment_id: comment.id,
-            book_id: book_id,
             content: notificationContent,
             is_read: false,
           },
         });
 
-        console.log(
-          "Created notification for comment reply:",
-          notification.id
-        );
+        console.log("Created notification for comment reply:", notification.id);
+        console.log("Notification created successfully");
       } catch (notificationError) {
-        // Log the error but don't fail the comment creation
         console.error(
           "Error creating notification for comment reply:",
           notificationError

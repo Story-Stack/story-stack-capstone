@@ -63,3 +63,23 @@
   font-size: 11px;
   padding: 3px 6px;
 }
+
+/* Highlighted comment styles */
+.highlighted-comment {
+  animation: highlight-pulse 3s ease-in-out;
+  border: 2px solid #007bff;
+  border-radius: 8px;
+  box-shadow: 0 0 15px rgba(0, 123, 255, 0.5);
+}
+
+@keyframes highlight-pulse {
+  0% {
+    background-color: rgba(0, 123, 255, 0.2);
+  }
+  50% {
+    background-color: rgba(0, 123, 255, 0.1);
+  }
+  100% {
+    background-color: transparent;
+  }
+}
