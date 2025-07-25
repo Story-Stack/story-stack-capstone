@@ -2,6 +2,7 @@ import "./Dashboard.css";
 import Search from "../Search";
 import BookList from "../BookList";
 import Sidebar from "../components/FavoritesSidebar";
+import CelebrityList from "../components/CelebrityList";
 import { useState, useEffect } from "react";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
 import { supabase } from "../../utils/supabaseClient";
@@ -357,6 +358,9 @@ function Dashboard() {
                 </ul>
               )}
             </div>
+
+            {/* Celebrity List Component */}
+            <CelebrityList />
           </aside>
         </div>
       </div>

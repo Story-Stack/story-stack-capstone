@@ -18,6 +18,7 @@ const recommendationsRoutes = require("./routes/recommendations.js");
 const notificationsRoutes = require("./routes/notifications.js");
 const newReleasesRoutes = require("./routes/new-releases.js");
 const userFollowsRoutes = require("./routes/user-follows.js");
+const celebritiesRoutes = require("./routes/celebrities.js");
 
 const app = express();
 const prisma = new PrismaClient();
@@ -38,6 +39,7 @@ app.use("/api/recommendations", recommendationsRoutes);
 app.use("/api/notifications", notificationsRoutes);
 app.use("/api/new-releases", newReleasesRoutes);
 app.use("/api/user-follows", userFollowsRoutes);
+app.use("/api/celebrities", celebritiesRoutes);
 
 // Default route
 app.get("/", (_req, res) => {
