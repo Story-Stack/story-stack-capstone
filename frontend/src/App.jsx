@@ -21,6 +21,7 @@ import RecommendationsPage from "./pages/RecommendationsPage";
 import DiscussionPage from "./pages/DiscussionPage";
 import NotificationsPage from "./pages/NotificationsPage";
 import ProfilePage from "./pages/ProfilePage";
+import OtherUserProfilePage from "./pages/OtherUserProfilePage";
 import SignIn from "./pages/authentication-pages/SignIn";
 import Register from "./pages/authentication-pages/Register";
 
@@ -73,7 +74,6 @@ const Navigation = () => {
         <>
           <a href="/signin">Sign In</a> &nbsp;
           <a href="/register">Register</a> &nbsp;
-          <a href="/dashboard">Dashboard</a> &nbsp;
         </>
       );
     }
@@ -400,6 +400,15 @@ function App() {
                   element={
                     <ProtectedRoute>
                       <ProfilePage />
+                    </ProtectedRoute>
+                  }
+                />
+
+                <Route
+                  path="/user/:userId"
+                  element={
+                    <ProtectedRoute>
+                      <OtherUserProfilePage />
                     </ProtectedRoute>
                   }
                 />
