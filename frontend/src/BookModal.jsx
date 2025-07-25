@@ -113,18 +113,45 @@ function BookModal({
 
     setLoading(true);
     try {
+      // to make sure there is a numeric database user ID
+      let userId = user.id;
+
+      // If the user object has a supabase_id property, it means the Supabase ID
+      // is being used and need to get the numeric database ID
+      if (user.supabase_id) {
+        // we already have the database user object with the correct ID
+        userId = user.id;
+      } else {
+        // to get the database user ID from the supabase ID
+        try {
+          const userResponse = await fetch(`http://localhost:3000/api/users/supabase/${user.id}`);
+          if (userResponse.ok) {
+            const userData = await userResponse.json();
+            userId = userData.id; // Get the numeric database ID
+          } else {
+            console.error("Failed to get user data for comment:", userResponse.status);
+            throw new Error("Failed to get user data");
+          }
+        } catch (error) {
+          console.error("Error getting user data for comment:", error);
+          throw error;
+        }
+      }
+
       const commentData = {
         content: newComment,
         book_id: book.id,
         book_title: title,
         book_data: book,
-        userId: user.id,
+        userId: userId,
       };
 
       // If replying to a comment, add the parentId
       if (replyingTo) {
         commentData.parentId = replyingTo.id;
       }
+
+      console.log("Sending comment with data:", commentData);
 
       const response = await fetch("http://localhost:3000/api/comments", {
         method: "POST",
