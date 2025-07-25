@@ -119,20 +119,16 @@ model UserCategoryScore {
 }
 
 model Notification {
-  id                String   @id @default(uuid())
-  user_id           Int
-  channel_id        String
-  message_id        String?
-  content           String
-  is_read           Boolean  @default(false)
-  created_at        DateTime @default(now())
-  comment_id        String?
-  book_id           String?
-  is_recommendation Boolean  @default(false)
-  book_data         Json?
-  channel           Channel  @relation(fields: [channel_id], references: [id], onDelete: Cascade)
-  message           Message? @relation(fields: [message_id], references: [id])
-  user              User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  id         String   @id @default(uuid())
+  user_id    Int
+  channel_id String
+  message_id String?
+  content    String
+  is_read    Boolean  @default(false)
+  created_at DateTime @default(now())
+  channel    Channel  @relation(fields: [channel_id], references: [id], onDelete: Cascade)
+  message    Message? @relation(fields: [message_id], references: [id])
+  user       User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
 }
 
 model UserFollows {
