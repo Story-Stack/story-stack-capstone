@@ -119,6 +119,15 @@ router.get("/:userId", async (req, res) => {
 
     const userIdInt = parseInt(userId);
 
+    // Check if user exists
+    const user = await prisma.user.findUnique({
+      where: { id: userIdInt },
+    });
+
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
     const topCategories = await prisma.userCategoryScore.findMany({
       where: { user_id: userIdInt },
       orderBy: { score: "desc" },
@@ -127,6 +136,7 @@ router.get("/:userId", async (req, res) => {
 
     res.json(topCategories);
   } catch (error) {
+    console.error("Error fetching top categories:", error);
     res.status(500).json({ error: "Failed to fetch top categories" });
   }
 });
