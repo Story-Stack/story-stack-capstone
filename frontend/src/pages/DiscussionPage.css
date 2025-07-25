@@ -12,7 +12,7 @@
   display: flex;
   align-items: center;
   padding: 15px 20px;
-  background-color: #1E90FF;
+  background-color: #1e90ff;
   color: white;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
@@ -86,7 +86,7 @@
 }
 
 .sent-bubble {
-  background-color: #1E90FF;
+  background-color: #1e90ff;
   border-bottom-right-radius: 4px;
   margin-left: auto;
 }
@@ -102,6 +102,20 @@
   font-weight: 600;
   color: #075e54;
   margin-bottom: 2px;
+  cursor: pointer;
+  position: relative;
+  display: inline-block;
+}
+
+.sender-name:hover {
+  text-decoration: underline;
+}
+
+.user-popup-container {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  z-index: 1000;
 }
 
 .message-content {

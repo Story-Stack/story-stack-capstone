@@ -1,16 +1,14 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "../App";
+import { useParams, useNavigate } from "react-router-dom";
 import Sidebar from "../components/FavoritesSidebar";
 import FollowButton from "../components/FollowButton";
 import "./ProfilePage.css";
 
-function ProfilePage() {
+function OtherUserProfilePage() {
   const [userData, setUserData] = useState(null);
   const [joinedChannels, setJoinedChannels] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [bioEditing, setBioEditing] = useState(false);
-  const [bioText, setBioText] = useState("");
-  const [bioSaving, setBioSaving] = useState(false);
   const [followCounts, setFollowCounts] = useState({
     followers: 0,
     following: 0,
@@ -21,14 +19,19 @@ function ProfilePage() {
   const [following, setFollowing] = useState([]);
   const [loadingFollowers, setLoadingFollowers] = useState(false);
   const [loadingFollowing, setLoadingFollowing] = useState(false);
+  const [currentUserData, setCurrentUserData] = useState(null);
   const { user } = useAuth();
+  const { userId } = useParams();
+  const navigate = useNavigate();
 
   useEffect(() => {
+    fetchUserData();
+    fetchJoinedChannels();
+
     if (user) {
-      fetchUserData();
-      fetchJoinedChannels();
+      fetchCurrentUserData();
     }
-  }, [user]);
+  }, [userId, user]);
 
   useEffect(() => {
     if (userData) {
@@ -36,15 +39,29 @@ function ProfilePage() {
     }
   }, [userData]);
 
-  const fetchUserData = async () => {
-    if (!user) return;
-
+  const fetchCurrentUserData = async () => {
     try {
       const response = await fetch(`/api/users/supabase/${user.id}`);
       if (response.ok) {
         const data = await response.json();
+        setCurrentUserData(data);
+      }
+    } catch (error) {
+      console.error("Error fetching current user data:", error);
+    }
+  };
+
+  // Helper function to navigate to user profile
+  const navigateToUserProfile = (userId) => {
+    navigate(`/user/${userId}`);
+  };
+
+  const fetchUserData = async () => {
+    try {
+      const response = await fetch(`/api/users/${userId}`);
+      if (response.ok) {
+        const data = await response.json();
         setUserData(data);
-        setBioText(data.bio || "");
       } else {
         console.error("Failed to fetch user data");
       }
@@ -56,10 +73,8 @@ function ProfilePage() {
   };
 
   const fetchJoinedChannels = async () => {
-    if (!user) return;
-
     try {
-      const response = await fetch(`/api/user-channels/user/${user.id}`);
+      const response = await fetch(`/api/user-channels/user/${userId}`);
       if (response.ok) {
         const data = await response.json();
         setJoinedChannels(data);
@@ -72,10 +87,8 @@ function ProfilePage() {
   };
 
   const fetchFollowCounts = async () => {
-    if (!user || !userData) return;
-
     try {
-      const response = await fetch(`/api/user-follows/counts/${userData.id}`);
+      const response = await fetch(`/api/user-follows/counts/${userId}`);
       if (response.ok) {
         const data = await response.json();
         setFollowCounts(data);
@@ -88,13 +101,9 @@ function ProfilePage() {
   };
 
   const fetchFollowers = async () => {
-    if (!user || !userData) return;
-
     setLoadingFollowers(true);
     try {
-      const response = await fetch(
-        `/api/user-follows/followers/${userData.id}`
-      );
+      const response = await fetch(`/api/user-follows/followers/${userId}`);
       if (response.ok) {
         const data = await response.json();
         setFollowers(data);
@@ -109,13 +118,9 @@ function ProfilePage() {
   };
 
   const fetchFollowing = async () => {
-    if (!user || !userData) return;
-
     setLoadingFollowing(true);
     try {
-      const response = await fetch(
-        `/api/user-follows/following/${userData.id}`
-      );
+      const response = await fetch(`/api/user-follows/following/${userId}`);
       if (response.ok) {
         const data = await response.json();
         setFollowing(data);
@@ -129,44 +134,8 @@ function ProfilePage() {
     }
   };
 
-  const handleBioEdit = () => {
-    setBioEditing(true);
-  };
-
-  const handleBioSave = async () => {
-    if (!user) return;
-
-    setBioSaving(true);
-    try {
-      const response = await fetch(`/api/users/${userData.supabase_id}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ bio: bioText }),
-      });
-
-      if (response.ok) {
-        const updatedUser = await response.json();
-        setUserData(updatedUser);
-        setBioEditing(false);
-      } else {
-        console.error("Failed to update bio");
-      }
-    } catch (error) {
-      console.error("Error updating bio:", error);
-    } finally {
-      setBioSaving(false);
-    }
-  };
-
-  const handleBioCancel = () => {
-    setBioText(userData?.bio || "");
-    setBioEditing(false);
-  };
-
   const handleJoinDiscussion = (channelId) => {
-    window.location.href = `/discussion/${channelId}`;
+    navigate(`/discussion/${channelId}`);
   };
 
   const toggleFollowers = () => {
@@ -185,18 +154,10 @@ function ProfilePage() {
     setShowFollowers(false);
   };
 
-  const handleFollowStatusChange = () => {
-    // Refresh follow counts and lists when follow status changes
+  const handleFollowStatusChange = (isFollowing) => {
+    // Refresh follow counts when follow status changes
     fetchFollowCounts();
-    if (showFollowers) {
-      fetchFollowers();
-    }
-    if (showFollowing) {
-      fetchFollowing();
-    }
   };
-
-  // No longer needed as we're using FollowButton component
 
   // Close dropdowns when clicking outside
   useEffect(() => {
@@ -235,6 +196,25 @@ function ProfilePage() {
     return <div className="loading">Loading profile...</div>;
   }
 
+  if (!userData) {
+    return (
+      <div className="profile-page">
+        <div className="sidebar-container">
+          <Sidebar />
+        </div>
+        <div className="profile-content">
+          <div className="profile-header">
+            <h1>User Not Found</h1>
+          </div>
+          <p>The user you're looking for doesn't exist or has been removed.</p>
+          <button className="back-button" onClick={() => navigate(-1)}>
+            Go Back
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="profile-page">
       <div className="sidebar-container">
@@ -243,7 +223,16 @@ function ProfilePage() {
       <div className="profile-content">
         <div className="profile-header">
           <div className="profile-header-content">
-            <h1>My Profile</h1>
+            <h1>
+              {userData.first_name || userData.email.split("@")[0]}'s Profile
+            </h1>
+            {currentUserData && userData.id !== currentUserData.id && (
+              <FollowButton
+                targetUserId={userData.id}
+                targetUserSupabaseId={userData.supabase_id}
+                onFollowStatusChange={handleFollowStatusChange}
+              />
+            )}
           </div>
         </div>
 
@@ -264,9 +253,7 @@ function ProfilePage() {
                         <li key={follower.id} className="follow-item">
                           <div
                             className="follow-user-info"
-                            onClick={() =>
-                              (window.location.href = `/user/${follower.id}`)
-                            }
+                            onClick={() => navigate(`/user/${follower.id}`)}
                           >
                             <span className="follow-user-name">
                               {follower.first_name ||
@@ -276,13 +263,13 @@ function ProfilePage() {
                               {follower.email}
                             </span>
                           </div>
-                          {follower.id !== userData.id && (
-                            <FollowButton
-                              targetUserId={follower.id}
-                              targetUserSupabaseId={follower.supabase_id}
-                              onFollowStatusChange={handleFollowStatusChange}
-                            />
-                          )}
+                          {currentUserData &&
+                            follower.id !== currentUserData.id && (
+                              <FollowButton
+                                targetUserId={follower.id}
+                                targetUserSupabaseId={follower.supabase_id}
+                              />
+                            )}
                         </li>
                       ))}
                     </ul>
@@ -308,9 +295,7 @@ function ProfilePage() {
                         <li key={followedUser.id} className="follow-item">
                           <div
                             className="follow-user-info"
-                            onClick={() =>
-                              (window.location.href = `/user/${followedUser.id}`)
-                            }
+                            onClick={() => navigate(`/user/${followedUser.id}`)}
                           >
                             <span className="follow-user-name">
                               {followedUser.first_name ||
@@ -320,11 +305,13 @@ function ProfilePage() {
                               {followedUser.email}
                             </span>
                           </div>
-                          <FollowButton
-                            targetUserId={followedUser.id}
-                            targetUserSupabaseId={followedUser.supabase_id}
-                            onFollowStatusChange={handleFollowStatusChange}
-                          />
+                          {currentUserData &&
+                            followedUser.id !== currentUserData.id && (
+                              <FollowButton
+                                targetUserId={followedUser.id}
+                                targetUserSupabaseId={followedUser.supabase_id}
+                              />
+                            )}
                         </li>
                       ))}
                     </ul>
@@ -339,71 +326,29 @@ function ProfilePage() {
 
         <div className="profile-section">
           <h2>User Information</h2>
-          {userData ? (
-            <div className="user-info">
-              <p>
-                <strong>Name:</strong> {userData.first_name || ""}{" "}
-                {userData.last_name || ""}
-              </p>
-              <p>
-                <strong>Email:</strong> {userData.email}
-              </p>
-              <p>
-                <strong>Member since:</strong>{" "}
-                {new Date(userData.created_at).toLocaleDateString()}
-              </p>
-            </div>
-          ) : (
-            <p>No user information available</p>
-          )}
-        </div>
-
-        <div className="profile-section">
-          <div className="bio-header">
-            <h2>Bio</h2>
-            {!bioEditing && (
-              <button onClick={handleBioEdit} className="edit-bio-btn">
-                {userData?.bio ? "Edit" : "Add Bio"}
-              </button>
-            )}
+          <div className="user-info">
+            <p>
+              <strong>Name:</strong> {userData.first_name || ""}{" "}
+              {userData.last_name || ""}
+            </p>
+            <p>
+              <strong>Email:</strong> {userData.email}
+            </p>
+            <p>
+              <strong>Member since:</strong>{" "}
+              {new Date(userData.created_at).toLocaleDateString()}
+            </p>
           </div>
-
-          {bioEditing ? (
-            <div className="bio-edit">
-              <textarea
-                value={bioText}
-                onChange={(e) => setBioText(e.target.value)}
-                placeholder="Tell us about yourself..."
-                rows={4}
-                className="bio-textarea"
-              />
-              <div className="bio-actions">
-                <button
-                  onClick={handleBioSave}
-                  className="save-bio-btn"
-                  disabled={bioSaving}
-                >
-                  {bioSaving ? "Saving..." : "Save"}
-                </button>
-                <button
-                  onClick={handleBioCancel}
-                  className="cancel-bio-btn"
-                  disabled={bioSaving}
-                >
-                  Cancel
-                </button>
-              </div>
-            </div>
-          ) : (
-            <div className="bio-display">
-              {userData?.bio ? (
-                <p>{userData.bio}</p>
-              ) : (
-                <p className="no-bio">No bio added yet.</p>
-              )}
-            </div>
-          )}
         </div>
+
+        {userData.bio && (
+          <div className="profile-section">
+            <h2>Bio</h2>
+            <div className="bio-display">
+              <p>{userData.bio}</p>
+            </div>
+          </div>
+        )}
 
         <div className="profile-section">
           <h2>Book Discussions Joined</h2>
@@ -428,7 +373,7 @@ function ProfilePage() {
               ))}
             </ul>
           ) : (
-            <p>You haven't joined any book discussions yet.</p>
+            <p>This user hasn't joined any book discussions yet.</p>
           )}
         </div>
       </div>
@@ -436,4 +381,4 @@ function ProfilePage() {
   );
 }
 
-export default ProfilePage;
+export default OtherUserProfilePage;

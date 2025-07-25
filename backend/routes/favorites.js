@@ -1,105 +1,111 @@
 const express = require("express");
 const { PrismaClient } = require("../generated/prisma");
+
 const router = express.Router();
 const prisma = new PrismaClient();
 
-// Get user's favorites
-router.get("/:supabaseId", async (req, res) => {
+// Get favorites for a user
+router.get("/:userId", async (req, res) => {
   try {
-    const { supabaseId } = req.params;
+    const { userId } = req.params;
 
-    // First get the user
+    // Convert userId to integer
+    const userIdInt = parseInt(userId);
+
+    // Check if user exists
     const user = await prisma.user.findUnique({
-      where: { supabase_id: supabaseId },
-      include: {
-        favorites: true,
-      },
+      where: { id: userIdInt },
     });
 
     if (!user) {
       return res.status(404).json({ error: "User not found" });
     }
 
-    res.json(user.favorites);
+    // Find all favorites for the user
+    const favorites = await prisma.favorite.findMany({
+      where: {
+        user_id: userIdInt,
+      },
+    });
+
+    res.json(favorites);
   } catch (error) {
     console.error("Error fetching favorites:", error);
-    res.status(500).json({ error: "Internal server error" });
+    res.status(500).json({ error: "Failed to fetch favorites" });
   }
 });
 
-// Add book to favorites
+// Add a book to favorites
 router.post("/", async (req, res) => {
   try {
     const { supabase_id, book_id, book_title, book_data } = req.body;
 
-    // First get the user
+    // Find user by supabase_id
     const user = await prisma.user.findUnique({
-      where: { supabase_id: supabase_id },
+      where: {
+        supabase_id: supabase_id,
+      },
     });
 
     if (!user) {
       return res.status(404).json({ error: "User not found" });
     }
 
-    // Check if already favorited
-    const existingFavorite = await prisma.favorite.findUnique({
+    // Check if the book is already in favorites
+    const existingFavorite = await prisma.favorite.findFirst({
       where: {
-        user_id_book_id: {
-          user_id: user.id,
-          book_id: book_id,
-        },
+        user_id: user.id,
+        book_id: book_id,
       },
     });
 
     if (existingFavorite) {
-      return res.json({
-        message: "Already in favorites",
-        favorite: existingFavorite,
-      });
+      return res.status(400).json({ error: "Book already in favorites" });
     }
 
     // Add to favorites
     const favorite = await prisma.favorite.create({
       data: {
         user_id: user.id,
-        book_id,
-        book_title,
-        book_data,
+        book_id: book_id,
+        book_title: book_title,
+        book_data: book_data,
       },
     });
 
     // Trigger score recalculation in the background
     try {
-      const response = await fetch(
-        `http://localhost:3000/api/category-scores/recalculate/${user.id}`,
-        {
-          method: "POST",
-        }
-      );
-      if (!response.ok) {
-        console.warn(
-          "Failed to recalculate category scores after adding favorite"
-        );
-      }
+      // Use direct prisma call instead of fetch
+      await prisma.userCategoryScore.updateMany({
+        where: {
+          user_id: user.id,
+        },
+        data: {
+          needs_recalculation: true,
+        },
+      });
+      console.log(`Marked user ${user.id} scores for recalculation`);
     } catch (scoreError) {
-      console.warn("Error recalculating category scores:", scoreError);
+      console.warn("Error marking scores for recalculation:", scoreError);
     }
 
     res.status(201).json(favorite);
   } catch (error) {
     console.error("Error adding to favorites:", error);
-    res.status(500).json({ error: "Internal server error" });
+    res.status(500).json({ error: "Failed to add to favorites" });
   }
 });
 
-// Remove book from favorites
+// Remove a book from favorites
 router.delete("/", async (req, res) => {
   try {
     const { supabase_id, book_id } = req.body;
 
-    // First get the user
+    // Find user by supabase_id
     const user = await prisma.user.findUnique({
-      where: { supabase_id: supabase_id },
+      where: {
+        supabase_id: supabase_id,
+      },
     });
 
     if (!user) {
@@ -107,34 +113,37 @@ router.delete("/", async (req, res) => {
     }
 
     // Remove from favorites
-    await prisma.favorite.deleteMany({
+    const result = await prisma.favorite.deleteMany({
       where: {
         user_id: user.id,
         book_id: book_id,
       },
     });
 
-    // Trigger score recalculation in the background
-    try {
-      const response = await fetch(
-        `http://localhost:3000/api/category-scores/recalculate/${user.id}`,
-        {
-          method: "POST",
-        }
-      );
-      if (!response.ok) {
-        console.warn(
-          "Failed to recalculate category scores after removing favorite"
-        );
-      }
-    } catch (scoreError) {
-      console.warn("Error recalculating category scores:", scoreError);
+    if (result.count === 0) {
+      return res.status(404).json({ error: "Book not found in favorites" });
     }
 
-    res.json({ message: "Removed from favorites" });
+    // Trigger score recalculation in the background
+    try {
+      // Use direct prisma call instead of fetch
+      await prisma.userCategoryScore.updateMany({
+        where: {
+          user_id: user.id,
+        },
+        data: {
+          needs_recalculation: true,
+        },
+      });
+      console.log(`Marked user ${user.id} scores for recalculation`);
+    } catch (scoreError) {
+      console.warn("Error marking scores for recalculation:", scoreError);
+    }
+
+    res.json({ message: "Book removed from favorites" });
   } catch (error) {
     console.error("Error removing from favorites:", error);
-    res.status(500).json({ error: "Internal server error" });
+    res.status(500).json({ error: "Failed to remove from favorites" });
   }
 });
 

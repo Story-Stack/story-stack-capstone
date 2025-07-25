@@ -17,6 +17,7 @@ const categoryScoresRoutes = require("./routes/category-scores.js");
 const recommendationsRoutes = require("./routes/recommendations.js");
 const notificationsRoutes = require("./routes/notifications.js");
 const newReleasesRoutes = require("./routes/new-releases.js");
+const userFollowsRoutes = require("./routes/user-follows.js");
 
 const app = express();
 const prisma = new PrismaClient();
@@ -36,6 +37,7 @@ app.use("/api/category-scores", categoryScoresRoutes);
 app.use("/api/recommendations", recommendationsRoutes);
 app.use("/api/notifications", notificationsRoutes);
 app.use("/api/new-releases", newReleasesRoutes);
+app.use("/api/user-follows", userFollowsRoutes);
 
 // Default route
 app.get("/", (_req, res) => {

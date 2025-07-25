@@ -30,9 +30,7 @@ function FavoritesPage() {
     if (!user) return;
 
     try {
-      const response = await fetch(
-        `http://localhost:3000/api/shelf/${user.id}`
-      );
+      const response = await fetch(`/api/shelf/${user.id}`);
 
       if (response.ok) {
         const shelfData = await response.json();
@@ -52,9 +50,7 @@ function FavoritesPage() {
 
     try {
       setLoading(true);
-      const response = await fetch(
-        `http://localhost:3000/api/favorites/${user.id}`
-      );
+      const response = await fetch(`/api/favorites/${user.id}`);
 
       if (response.ok) {
         const favoritesData = await response.json();
@@ -74,7 +70,7 @@ function FavoritesPage() {
     if (!user) return;
 
     try {
-      const response = await fetch("http://localhost:3000/api/favorites", {
+      const response = await fetch("/api/favorites", {
         method: "DELETE",
         headers: {
           "Content-Type": "application/json",
@@ -188,9 +184,7 @@ function FavoritesPage() {
 
     try {
       // Check if book is already on shelf by making a request
-      const checkResponse = await fetch(
-        `http://localhost:3000/api/shelf/${user.id}`
-      );
+      const checkResponse = await fetch(`/api/shelf/${user.id}`);
 
       let isOnShelf = false;
       if (checkResponse.ok) {
@@ -200,7 +194,7 @@ function FavoritesPage() {
 
       if (isOnShelf) {
         // Remove from shelf
-        const response = await fetch("http://localhost:3000/api/shelf", {
+        const response = await fetch("/api/shelf", {
           method: "DELETE",
           headers: {
             "Content-Type": "application/json",
@@ -219,11 +213,11 @@ function FavoritesPage() {
             return newShelfItems;
           });
         } else {
-          alert("Failed to remove from shelf. Please try again.");
+          alert ("Failed to remove from shelf. Please try again.");
         }
       } else {
         // Add to shelf
-        const response = await fetch("http://localhost:3000/api/shelf", {
+        const response = await fetch("/api/shelf", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",

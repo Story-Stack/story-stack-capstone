@@ -11,16 +11,18 @@ router.get("/:supabaseId", async (req, res) => {
     // First get the user
     const user = await prisma.user.findUnique({
       where: { supabase_id: supabaseId },
-      include: {
-        shelf_items: true,
-      },
     });
 
     if (!user) {
       return res.status(404).json({ error: "User not found" });
     }
 
-    res.json(user.shelf_items);
+    // Get shelf items for the user
+    const shelfItems = await prisma.shelfItem.findMany({
+      where: { user_id: user.id },
+    });
+
+    res.json(shelfItems);
   } catch (error) {
     console.error("Error fetching shelf items:", error);
     res.status(500).json({ error: "Internal server error" });
@@ -42,12 +44,10 @@ router.post("/", async (req, res) => {
     }
 
     // Check if already on shelf
-    const existingShelfItem = await prisma.shelfItem.findUnique({
+    const existingShelfItem = await prisma.shelfItem.findFirst({
       where: {
-        user_id_book_id: {
-          user_id: user.id,
-          book_id: book_id,
-        },
+        user_id: user.id,
+        book_id: book_id,
       },
     });
 
@@ -70,19 +70,18 @@ router.post("/", async (req, res) => {
 
     // Trigger score recalculation in the background
     try {
-      const response = await fetch(
-        `http://localhost:3000/api/category-scores/recalculate/${user.id}`,
-        {
-          method: "POST",
-        }
-      );
-      if (!response.ok) {
-        console.warn(
-          "Failed to recalculate category scores after adding to shelf"
-        );
-      }
+      // Use direct prisma call instead of fetch
+      await prisma.userCategoryScore.updateMany({
+        where: {
+          user_id: user.id,
+        },
+        data: {
+          needs_recalculation: true,
+        },
+      });
+      console.log(`Marked user ${user.id} scores for recalculation`);
     } catch (scoreError) {
-      console.warn("Error recalculating category scores:", scoreError);
+      console.warn("Error marking scores for recalculation:", scoreError);
     }
 
     res.status(201).json(shelfItem);
@@ -116,19 +115,18 @@ router.delete("/", async (req, res) => {
 
     // Trigger score recalculation in the background
     try {
-      const response = await fetch(
-        `http://localhost:3000/api/category-scores/recalculate/${user.id}`,
-        {
-          method: "POST",
-        }
-      );
-      if (!response.ok) {
-        console.warn(
-          "Failed to recalculate category scores after removing from shelf"
-        );
-      }
+      // Use direct prisma call instead of fetch
+      await prisma.userCategoryScore.updateMany({
+        where: {
+          user_id: user.id,
+        },
+        data: {
+          needs_recalculation: true,
+        },
+      });
+      console.log(`Marked user ${user.id} scores for recalculation`);
     } catch (scoreError) {
-      console.warn("Error recalculating category scores:", scoreError);
+      console.warn("Error marking scores for recalculation:", scoreError);
     }
 
     res.json({ message: "Removed from shelf" });

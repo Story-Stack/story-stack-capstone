@@ -29,10 +29,20 @@ router.get("/supabase/:supabaseId", async (req, res) => {
 router.get("/:id", async (req, res) => {
   try {
     const { id } = req.params;
-
     const user = await prisma.user.findUnique({
       where: {
         id: parseInt(id),
+      },
+      select: {
+        id: true,
+        first_name: true,
+        last_name: true,
+        email: true,
+        bio: true,
+        created_at: true,
+        supabase_id: true,
+        num_followers: true,
+        num_following: true,
       },
     });
 

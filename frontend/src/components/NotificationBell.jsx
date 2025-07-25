@@ -21,9 +21,7 @@ function NotificationBell() {
 
     try {
       console.log("Fetching notifications for user:", user.id);
-      const response = await fetch(
-        `http://localhost:3000/api/notifications/user/${user.id}`
-      );
+      const response = await fetch(`/api/notifications/user/${user.id}`);
 
       if (response.ok) {
         const data = await response.json();
@@ -165,12 +163,9 @@ function NotificationBell() {
   const handleNotificationClick = async (notification) => {
     // Mark notification as read
     try {
-      await fetch(
-        `http://localhost:3000/api/notifications/${notification.id}/read`,
-        {
-          method: "PUT",
-        }
-      );
+      await fetch(`/api/notifications/${notification.id}/read`, {
+        method: "PUT",
+      });
 
       // Update local state
       setNotifications((prevNotifications) =>
@@ -209,12 +204,9 @@ function NotificationBell() {
     if (!user || notifications.length === 0) return;
 
     try {
-      await fetch(
-        `http://localhost:3000/api/notifications/user/${user.id}/read-all`,
-        {
-          method: "PUT",
-        }
-      );
+      await fetch(`/api/notifications/user/${user.id}/read-all`, {
+        method: "PUT",
+      });
 
       // Update local state
       setNotifications((prevNotifications) =>
@@ -239,7 +231,6 @@ function NotificationBell() {
         ref={bellRef}
       >
         <i className="fas fa-bell"></i>
-       
       </div>
 
       {showDropdown && (
