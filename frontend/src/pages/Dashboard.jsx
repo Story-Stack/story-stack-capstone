@@ -80,14 +80,11 @@ function Dashboard() {
     if (!user) return;
 
     try {
-      const response = await fetch(
-        `http://localhost:3000/api/user-channels/user/${user.id}`
-      );
+      const response = await fetch(`/api/user-channels/user/${user.id}`);
       if (response.ok) {
         const discussions = await response.json();
         setJoinedDiscussions(discussions);
       } else {
-        console.error("Failed to load joined discussions");
         setJoinedDiscussions([]);
       }
     } catch (error) {
@@ -180,19 +177,16 @@ function Dashboard() {
     try {
       if (existingDiscussion) {
         // Leave discussion
-        const response = await fetch(
-          "http://localhost:3000/api/user-channels/leave",
-          {
-            method: "DELETE",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              userId: user.id,
-              bookId: book.id,
-            }),
-          }
-        );
+        const response = await fetch("/api/user-channels/leave", {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            userId: user.id,
+            bookId: book.id,
+          }),
+        });
 
         if (response.ok) {
           // Remove from local state
@@ -204,21 +198,18 @@ function Dashboard() {
         }
       } else {
         // Join discussion
-        const response = await fetch(
-          "http://localhost:3000/api/user-channels/join",
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              userId: user.id,
-              bookId: book.id,
-              bookTitle: title,
-              bookData: book,
-            }),
-          }
-        );
+        const response = await fetch("/api/user-channels/join", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            userId: user.id,
+            bookId: book.id,
+            bookTitle: title,
+            bookData: book,
+          }),
+        });
 
         if (response.ok) {
           const newDiscussion = await response.json();
@@ -239,19 +230,16 @@ function Dashboard() {
     if (!user) return;
 
     try {
-      const response = await fetch(
-        "http://localhost:3000/api/user-channels/leave",
-        {
-          method: "DELETE",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            userId: user.id,
-            bookId: discussionId,
-          }),
-        }
-      );
+      const response = await fetch("/api/user-channels/leave", {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          userId: user.id,
+          bookId: discussionId,
+        }),
+      });
 
       if (response.ok) {
         // Remove from local state

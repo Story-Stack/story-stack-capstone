@@ -23,9 +23,7 @@ export default function DiscussionPage() {
 
       try {
         console.log("Fetching channel data for bookId:", bookId);
-        const response = await fetch(
-          `http://localhost:3000/api/channels/book/${bookId}`
-        );
+        const response = await fetch(`/api/channels/book/${bookId}`);
 
         if (response.ok) {
           const channelData = await response.json();
@@ -68,16 +66,14 @@ export default function DiscussionPage() {
     const fetchMessages = async () => {
       try {
         // First get the actual channel ID
-        const channelResponse = await fetch(
-          `http://localhost:3000/api/channels/book/${bookId}`
-        );
+        const channelResponse = await fetch(`/api/channels/book/${bookId}`);
         if (channelResponse.ok) {
           const channelData = await channelResponse.json();
           const actualChannelId = channelData.id;
 
           // Now fetch messages using the actual channel ID
           const messagesResponse = await fetch(
-            `http://localhost:3000/api/messages/channel/${actualChannelId}`
+            `/api/messages/channel/${actualChannelId}`
           );
           if (messagesResponse.ok) {
             const data = await messagesResponse.json();
@@ -124,7 +120,7 @@ export default function DiscussionPage() {
       console.log("Current user object:", user);
       console.log("Sending message data to server:", messageData);
 
-      const response = await fetch("http://localhost:3000/api/messages", {
+      const response = await fetch("/api/messages", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -154,9 +150,7 @@ export default function DiscussionPage() {
   const ensureChannelExists = async () => {
     try {
       // Check if channel exists
-      const checkResponse = await fetch(
-        `http://localhost:3000/api/channels/book/${bookId}`
-      );
+      const checkResponse = await fetch(`/api/channels/book/${bookId}`);
 
       if (checkResponse.ok) {
         const channelData = await checkResponse.json();
@@ -168,28 +162,23 @@ export default function DiscussionPage() {
       console.log("Channel does not exist, creating it...");
 
       if (bookData) {
-        const createResponse = await fetch(
-          "http://localhost:3000/api/user-channels/join",
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              userId: user.id,
-              bookId: bookId,
-              bookTitle: bookData.volumeInfo?.title || "Unknown Title",
-              bookData: bookData,
-            }),
-          }
-        );
+        const createResponse = await fetch("/api/user-channels/join", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            userId: user.id,
+            bookId: bookId,
+            bookTitle: bookData.volumeInfo?.title || "Unknown Title",
+            bookData: bookData,
+          }),
+        });
 
         if (createResponse.ok) {
           console.log("Channel created successfully");
           // Fetch the channel again to get the ID
-          const newCheckResponse = await fetch(
-            `http://localhost:3000/api/channels/book/${bookId}`
-          );
+          const newCheckResponse = await fetch(`/api/channels/book/${bookId}`);
           if (newCheckResponse.ok) {
             const newChannelData = await newCheckResponse.json();
             console.log("New channel ID:", newChannelData.id);
