@@ -50,7 +50,22 @@ function FavoritesPage() {
 
     try {
       setLoading(true);
-      const response = await fetch(`/api/favorites/${user.id}`);
+
+      // First get the user's database ID
+      const userResponse = await fetch(`/api/users/supabase/${user.id}`);
+
+      if (!userResponse.ok) {
+        console.error("Failed to get user data:", userResponse.status);
+        setFavorites([]);
+        setLoading(false);
+        return;
+      }
+
+      const userData = await userResponse.json();
+      const userId = userData.id; // Get the numeric database ID
+
+      // Now fetch favorites with the correct ID
+      const response = await fetch(`/api/favorites/${userId}`);
 
       if (response.ok) {
         const favoritesData = await response.json();

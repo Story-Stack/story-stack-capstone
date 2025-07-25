@@ -249,11 +249,19 @@ const FavoritesProvider = ({ children }) => {
       } = await supabase.auth.getSession();
       if (!session || !user) return;
 
-      const response = await fetch(`/api/favorites/${user.id}`, {
-        headers: {
-          Authorization: `Bearer ${session.access_token}`,
-        },
-      });
+      // First get the user's database ID
+      const userResponse = await fetch(`/api/users/supabase/${user.id}`);
+
+      if (!userResponse.ok) {
+        console.error("Failed to get user data:", userResponse.status);
+        return;
+      }
+
+      const userData = await userResponse.json();
+      const userId = userData.id; // Get the numeric database ID
+
+      // Now fetch favorites with the correct ID
+      const response = await fetch(`/api/favorites/${userId}`);
 
       if (response.ok) {
         const data = await response.json();
@@ -271,19 +279,24 @@ const FavoritesProvider = ({ children }) => {
       const {
         data: { session },
       } = await supabase.auth.getSession();
-      if (!session) return { success: false };
+      if (!session || !user) return { success: false };
 
       const response = await fetch("/api/favorites", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${session.access_token}`,
         },
-        body: JSON.stringify({ bookId: book.id }),
+        body: JSON.stringify({
+          supabase_id: user.id,
+          book_id: book.id,
+          book_title: book.volumeInfo.title,
+          book_data: book,
+        }),
       });
 
       if (response.ok) {
         setFavorites((prev) => [...prev, book]);
+        loadFavorites(); // Reload favorites to ensure consistency
         return { success: true };
       }
     } catch (error) {
@@ -297,13 +310,17 @@ const FavoritesProvider = ({ children }) => {
       const {
         data: { session },
       } = await supabase.auth.getSession();
-      if (!session) return { success: false };
+      if (!session || !user) return { success: false };
 
-      const response = await fetch(`/api/favorites/${bookId}`, {
+      const response = await fetch("/api/favorites", {
         method: "DELETE",
         headers: {
-          Authorization: `Bearer ${session.access_token}`,
+          "Content-Type": "application/json",
         },
+        body: JSON.stringify({
+          supabase_id: user.id,
+          book_id: bookId,
+        }),
       });
 
       if (response.ok) {
