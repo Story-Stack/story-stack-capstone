@@ -79,10 +79,67 @@ router.get("/book/:bookId", async (req, res) => {
   try {
     const { bookId } = req.params;
 
-    // Get all comments with their full reply tree
-    const comments = await getAllCommentsWithReplies(bookId);
+    // Get all comments for this book (both top-level and replies)
+    const allComments = await prisma.comment.findMany({
+      where: {
+        book_id: bookId,
+      },
+      include: {
+        user: {
+          select: {
+            id: true,
+            first_name: true,
+            last_name: true,
+            email: true, // Include email field
+          },
+        },
+      },
+      orderBy: {
+        createdAt: "asc",
+      },
+    });
 
-    res.json(comments);
+    // Create a map for quick lookup
+    const commentMap = new Map();
+    allComments.forEach((comment) => {
+      // Initialize replies array for each comment
+      comment.replies = [];
+      commentMap.set(comment.id, comment);
+    });
+
+    // Build the tree structure
+    const rootComments = [];
+    allComments.forEach((comment) => {
+      if (comment.parentId) {
+        // This is a reply, add it to its parent's replies
+        const parent = commentMap.get(comment.parentId);
+        if (parent) {
+          parent.replies.push(comment);
+        }
+      } else {
+        // This is a top-level comment
+        rootComments.push(comment);
+      }
+    });
+
+    // Sort replies by creation time
+    const sortReplies = (comments) => {
+      comments.forEach((comment) => {
+        if (comment.replies.length > 0) {
+          comment.replies.sort(
+            (a, b) => new Date(a.createdAt) - new Date(b.createdAt)
+          );
+          sortReplies(comment.replies);
+        }
+      });
+    };
+
+    sortReplies(rootComments);
+
+    // Sort root comments by creation time (newest first)
+    rootComments.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+    res.json(rootComments);
   } catch (error) {
     console.error("Error fetching comments:", error);
     res.status(500).json({ error: "Failed to fetch comments" });
@@ -94,6 +151,14 @@ router.post("/", async (req, res) => {
   try {
     const { content, book_id, book_title, book_data, userId, parentId } =
       req.body;
+
+    console.log("Creating comment with data:", {
+      content,
+      book_id,
+      book_title,
+      userId,
+      parentId,
+    });
 
     if (!content || !book_id || !userId) {
       return res.status(400).json({ error: "Missing required fields" });
@@ -138,11 +203,6 @@ router.post("/", async (req, res) => {
 
       commentData.parentId = parentId;
       parentCommentUser = parentComment.user;
-      console.log("Found parent comment:", parentComment.id);
-      console.log("Parent comment user:", {
-        id: parentCommentUser.id,
-        email: parentCommentUser.email,
-      });
     }
 
     // Create comment
@@ -160,6 +220,8 @@ router.post("/", async (req, res) => {
         parent: true,
       },
     });
+
+    console.log("Comment created successfully:", comment.id);
 
     // Create notification if this is a reply to someone else's comment
     if (
@@ -203,43 +265,22 @@ router.post("/", async (req, res) => {
           50
         )}${content.length > 50 ? "..." : ""}"`;
 
-        // Check if we should create a notification based on content filtering
-        if (shouldCreateNotification(content)) {
-          console.log("Creating notification with data:", {
+        // Create notification for the parent comment author
+        const notification = await prisma.notification.create({
+          data: {
             user_id: parentCommentUser.id,
             channel_id: channel.id,
             comment_id: comment.id,
             book_id: book_id,
             content: notificationContent,
-          });
+            is_read: false,
+          },
+        });
 
-          // Create notification for the parent comment author
-          const notification = await prisma.notification.create({
-            data: {
-              user_id: parentCommentUser.id,
-              channel_id: channel.id,
-              comment_id: comment.id,
-              book_id: book_id,
-              content: notificationContent,
-              is_read: false,
-            },
-          });
-
-          console.log(
-            "Created notification for comment reply:",
-            notification.id
-          );
-        } else {
-          console.log(
-            "Skipping notification creation due to content filtering:",
-            {
-              reason: "Comment contains bad words OR has fewer than 5 words",
-              content: content,
-              hasBadWords: containsBadWords(content),
-              wordCount: countWords(content),
-            }
-          );
-        }
+        console.log(
+          "Created notification for comment reply:",
+          notification.id
+        );
       } catch (notificationError) {
         // Log the error but don't fail the comment creation
         console.error(
@@ -252,18 +293,16 @@ router.post("/", async (req, res) => {
           stack: notificationError.stack,
         });
       }
-    } else {
-      console.log("Not creating notification because:", {
-        hasParentComment: !!parentComment,
-        hasParentCommentUser: !!parentCommentUser,
-        isSelfReply:
-          parentCommentUser && parentCommentUser.id === parseInt(userId),
-      });
     }
 
     res.status(201).json(comment);
   } catch (error) {
     console.error("Error creating comment:", error);
+    console.error("Error details:", {
+      name: error.name,
+      message: error.message,
+      stack: error.stack,
+    });
     res.status(500).json({ error: "Failed to create comment" });
   }
 });
