@@ -25,6 +25,12 @@
   padding-bottom: 15px;
 }
 
+.profile-header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
 .profile-header h1 {
   font-size: 1.8rem;
   color: #343a40;
@@ -106,6 +112,11 @@
 .follow-user-info {
   display: flex;
   flex-direction: column;
+  cursor: pointer;
+}
+
+.follow-user-info:hover .follow-user-name {
+  text-decoration: underline;
 }
 
 .follow-user-name {

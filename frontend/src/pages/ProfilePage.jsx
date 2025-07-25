@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "../App";
 import Sidebar from "../components/FavoritesSidebar";
+import FollowButton from "../components/FollowButton";
 import "./ProfilePage.css";
 
 function ProfilePage() {
@@ -184,63 +185,18 @@ function ProfilePage() {
     setShowFollowers(false);
   };
 
-  const handleFollowUser = async (userId) => {
-    if (!user || !userData) return;
-
-    try {
-      const response = await fetch(`/api/user-follows/follow`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          followerId: userData.id,
-          followingId: userId,
-        }),
-      });
-
-      if (response.ok) {
-        // Refresh following list and counts
-        fetchFollowing();
-        fetchFollowCounts();
-      } else {
-        console.error("Failed to follow user");
-      }
-    } catch (error) {
-      console.error("Error following user:", error);
+  const handleFollowStatusChange = () => {
+    // Refresh follow counts and lists when follow status changes
+    fetchFollowCounts();
+    if (showFollowers) {
+      fetchFollowers();
+    }
+    if (showFollowing) {
+      fetchFollowing();
     }
   };
 
-  const handleUnfollowUser = async (userId) => {
-    if (!user || !userData) return;
-
-    try {
-      const response = await fetch(`/api/user-follows/unfollow`, {
-        method: "DELETE",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          followerId: userData.id,
-          followingId: userId,
-        }),
-      });
-
-      if (response.ok) {
-        // Refresh following list and counts
-        fetchFollowing();
-        fetchFollowCounts();
-      } else {
-        console.error("Failed to unfollow user");
-      }
-    } catch (error) {
-      console.error("Error unfollowing user:", error);
-    }
-  };
-
-  const isFollowing = (userId) => {
-    return following.some((followedUser) => followedUser.id === userId);
-  };
+  // No longer needed as we're using FollowButton component
 
   // Close dropdowns when clicking outside
   useEffect(() => {
@@ -286,7 +242,9 @@ function ProfilePage() {
       </div>
       <div className="profile-content">
         <div className="profile-header">
-          <h1>My Profile</h1>
+          <div className="profile-header-content">
+            <h1>My Profile</h1>
+          </div>
         </div>
 
         <div className="connections-section">
@@ -304,7 +262,12 @@ function ProfilePage() {
                     <ul className="follow-list">
                       {followers.map((follower) => (
                         <li key={follower.id} className="follow-item">
-                          <div className="follow-user-info">
+                          <div
+                            className="follow-user-info"
+                            onClick={() =>
+                              (window.location.href = `/user/${follower.id}`)
+                            }
+                          >
                             <span className="follow-user-name">
                               {follower.first_name ||
                                 follower.email.split("@")[0]}
@@ -314,20 +277,11 @@ function ProfilePage() {
                             </span>
                           </div>
                           {follower.id !== userData.id && (
-                            <button
-                              className={`follow-action-btn ${
-                                isFollowing(follower.id) ? "following" : ""
-                              }`}
-                              onClick={() =>
-                                isFollowing(follower.id)
-                                  ? handleUnfollowUser(follower.id)
-                                  : handleFollowUser(follower.id)
-                              }
-                            >
-                              {isFollowing(follower.id)
-                                ? "Following"
-                                : "Follow"}
-                            </button>
+                            <FollowButton
+                              targetUserId={follower.id}
+                              targetUserSupabaseId={follower.supabase_id}
+                              onFollowStatusChange={handleFollowStatusChange}
+                            />
                           )}
                         </li>
                       ))}
@@ -352,7 +306,12 @@ function ProfilePage() {
                     <ul className="follow-list">
                       {following.map((followedUser) => (
                         <li key={followedUser.id} className="follow-item">
-                          <div className="follow-user-info">
+                          <div
+                            className="follow-user-info"
+                            onClick={() =>
+                              (window.location.href = `/user/${followedUser.id}`)
+                            }
+                          >
                             <span className="follow-user-name">
                               {followedUser.first_name ||
                                 followedUser.email.split("@")[0]}
@@ -361,12 +320,11 @@ function ProfilePage() {
                               {followedUser.email}
                             </span>
                           </div>
-                          <button
-                            className="follow-action-btn following"
-                            onClick={() => handleUnfollowUser(followedUser.id)}
-                          >
-                            Unfollow
-                          </button>
+                          <FollowButton
+                            targetUserId={followedUser.id}
+                            targetUserSupabaseId={followedUser.supabase_id}
+                            onFollowStatusChange={handleFollowStatusChange}
+                          />
                         </li>
                       ))}
                     </ul>
