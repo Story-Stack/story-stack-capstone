@@ -236,6 +236,58 @@ router.post("/recalculate/:userId", async (req, res) => {
       }
     });
 
+    // Find celebrity interactions and add their weighted influence
+    // Get all comments on books the user has favorited or shelved
+    const userBookIds = new Set([
+      ...favorites.map((f) => f.book_id),
+      ...shelfItems.map((s) => s.book_id),
+    ]);
+
+    // Find comments from celebrities on these books
+    const celebrityComments = await prisma.comment.findMany({
+      where: {
+        book_id: { in: Array.from(userBookIds) },
+        userId: { not: userIdInt }, // Exclude the user's own comments
+      },
+      include: {
+        user: true,
+      },
+    });
+
+    // Add weighted points for celebrity comments
+    for (const comment of celebrityComments) {
+      if (comment.user && comment.user.celebrity_weight > 1.0) {
+        const bookData = comment.book_data || {};
+        const categories = getBookCategories(bookData);
+        const celebrityWeight = comment.user.celebrity_weight;
+
+        // Apply celebrity weight to comment points
+        addPoints(categories, dynamicWeights.comment * celebrityWeight);
+      }
+    }
+
+    // Find favorites from celebrities for the same books
+    const celebrityFavorites = await prisma.favorite.findMany({
+      where: {
+        book_id: { in: Array.from(userBookIds) },
+        user_id: { not: userIdInt }, // Exclude the user's own favorites
+      },
+      include: {
+        user: true,
+      },
+    });
+
+    // Add weighted points for celebrity favorites
+    for (const favorite of celebrityFavorites) {
+      if (favorite.user && favorite.user.celebrity_weight > 1.0) {
+        const categories = getBookCategories(favorite);
+        const celebrityWeight = favorite.user.celebrity_weight;
+
+        // Apply celebrity weight to favorite points
+        addPoints(categories, dynamicWeights.favorite * celebrityWeight);
+      }
+    }
+
     // Update scores in database
     await prisma.userCategoryScore.deleteMany({
       where: { user_id: userIdInt },

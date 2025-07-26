@@ -120,6 +120,32 @@ async function isUserCelebrity(
 }
 
 /**
+ * Calculate celebrity weight based on follower count
+ * @param {number} followerCount - Number of followers
+ * @returns {number} - Weight value between 1.0 and 5.0
+ */
+function calculateCelebrityWeight(followerCount) {
+  // Base weight is 1.0
+  if (followerCount < 5) return 1.0;
+
+  // Scale weight based on follower count
+  // 5-10 followers: 1.5x
+  if (followerCount < 10) return 1.5;
+
+  // 10-50 followers: 2.0x
+  if (followerCount < 50) return 2.0;
+
+  // 50-100 followers: 3.0x
+  if (followerCount < 100) return 3.0;
+
+  // 100-500 followers: 4.0x
+  if (followerCount < 500) return 4.0;
+
+  // 500+ followers: 5.0x
+  return 5.0;
+}
+
+/**
  * Get all celebrity users in the system
  * @param {number} followerThreshold - Minimum followers required (default: global FOLLOWER_THRESHOLD)
  * @param {number} commentTreeThreshold - Minimum size for a "large" comment tree
@@ -174,4 +200,5 @@ module.exports = {
   getAllCelebrities,
   setFollowerThreshold,
   getCommentTreeSize,
+  calculateCelebrityWeight,
 };

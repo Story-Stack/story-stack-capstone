@@ -28,6 +28,7 @@ model User {
   num_following   Int                 @default(0)
   followers       UserFollows[]       @relation("UserFollowers")
   following       UserFollows[]       @relation("UserFollowing")
+  celebrity_weight Float              @default(1.0)
 }
 
 model Favorite {
