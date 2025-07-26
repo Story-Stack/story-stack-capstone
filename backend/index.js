@@ -65,12 +65,11 @@ async function checkAndNotifyNewReleases() {
           return {
             json: (data) => {
               console.log(`New releases notification error (${code}):`, data);
-            }
+            },
           };
-        }
+        },
       };
 
-      
       await fetch(`http://localhost:${PORT}/api/new-releases/notify`, {
         method: "POST",
       });
@@ -133,7 +132,7 @@ async function checkAndSendRecommendations() {
               // Create a mock request with the necessary parameters
               const mockReq = {
                 params: { userId: user.supabase_id },
-                query: { notify: "true" }
+                query: { notify: "true" },
               };
               // Create a mock response
               const mockRes = {
@@ -145,15 +144,20 @@ async function checkAndSendRecommendations() {
                   return {
                     json: (data) => {
                       console.log(`Recommendation error (${code}):`, data);
-                    }
+                    },
                   };
-                }
+                },
               };
 
               // Use the actual API endpoint but within the same process
-              await fetch(`http://localhost:${PORT}/api/recommendations/${user.supabase_id}?notify=true`);
+              await fetch(
+                `http://localhost:${PORT}/api/recommendations/${user.supabase_id}?notify=true`
+              );
             } catch (recError) {
-              console.error(`Error sending recommendation to user ${user.id}:`, recError);
+              console.error(
+                `Error sending recommendation to user ${user.id}:`,
+                recError
+              );
             }
           }
         }
