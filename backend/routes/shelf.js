@@ -24,7 +24,6 @@ router.get("/:supabaseId", async (req, res) => {
 
     res.json(shelfItems);
   } catch (error) {
-    console.error("Error fetching shelf items:", error);
     res.status(500).json({ error: "Internal server error" });
   }
 });
@@ -79,14 +78,12 @@ router.post("/", async (req, res) => {
           needs_recalculation: true,
         },
       });
-      console.log(`Marked user ${user.id} scores for recalculation`);
     } catch (scoreError) {
       console.warn("Error marking scores for recalculation:", scoreError);
     }
 
     res.status(201).json(shelfItem);
   } catch (error) {
-    console.error("Error adding to shelf:", error);
     res.status(500).json({ error: "Internal server error" });
   }
 });
@@ -131,7 +128,6 @@ router.delete("/", async (req, res) => {
 
     res.json({ message: "Removed from shelf" });
   } catch (error) {
-    console.error("Error removing from shelf:", error);
     res.status(500).json({ error: "Internal server error" });
   }
 });

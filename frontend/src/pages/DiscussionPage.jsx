@@ -22,16 +22,13 @@ export default function DiscussionPage() {
       if (!bookId) return;
 
       try {
-        console.log("Fetching channel data for bookId:", bookId);
         const response = await fetch(`/api/channels/book/${bookId}`);
 
         if (response.ok) {
           const channelData = await response.json();
-          console.log("Channel data received:", channelData);
 
           // Use the stored book_data from the channel
           if (channelData.book_data) {
-            console.log("Book data found:", channelData.book_data);
             setBookData(channelData.book_data);
             return;
           }
@@ -48,7 +45,6 @@ export default function DiscussionPage() {
 
         if (googleBooksResponse.ok) {
           const bookData = await googleBooksResponse.json();
-          console.log("Book data fetched from Google Books:", bookData);
           setBookData(bookData);
         } else {
           console.log("Failed to fetch book data from Google Books");
@@ -105,7 +101,6 @@ export default function DiscussionPage() {
       const actualChannelId = await ensureChannelExists();
 
       if (!actualChannelId) {
-        console.error("Could not get or create channel");
         return;
       }
 
@@ -116,9 +111,7 @@ export default function DiscussionPage() {
         userId: user.id, // This should be the Supabase ID
       };
 
-      // Debug user object to verify we have the correct ID
-      console.log("Current user object:", user);
-      console.log("Sending message data to server:", messageData);
+
 
       const response = await fetch("/api/messages", {
         method: "POST",
@@ -130,16 +123,13 @@ export default function DiscussionPage() {
 
       if (response.ok) {
         const newMsg = await response.json();
-        console.log("Message sent successfully:", newMsg);
         setMessages((prev) => [...prev, newMsg]);
         setNewMessage("");
 
         // Trigger notification refresh for all components
         window.dispatchEvent(refreshNotificationsEvent);
       } else {
-        console.error("Failed to send message, status:", response.status);
         const errorData = await response.text();
-        console.error("Error response:", errorData);
       }
     } catch (error) {
       console.error("Error sending message:", error);
@@ -154,12 +144,10 @@ export default function DiscussionPage() {
 
       if (checkResponse.ok) {
         const channelData = await checkResponse.json();
-        console.log("Channel exists, using channel ID:", channelData.id);
         return channelData.id; // Return the actual channel UUID
       }
 
       // Channel doesn't exist, create it
-      console.log("Channel does not exist, creating it...");
 
       if (bookData) {
         const createResponse = await fetch("/api/user-channels/join", {
@@ -176,12 +164,10 @@ export default function DiscussionPage() {
         });
 
         if (createResponse.ok) {
-          console.log("Channel created successfully");
           // Fetch the channel again to get the ID
           const newCheckResponse = await fetch(`/api/channels/book/${bookId}`);
           if (newCheckResponse.ok) {
             const newChannelData = await newCheckResponse.json();
-            console.log("New channel ID:", newChannelData.id);
             return newChannelData.id;
           }
         } else {
@@ -191,7 +177,6 @@ export default function DiscussionPage() {
 
       return null;
     } catch (error) {
-      console.error("Error ensuring channel exists:", error);
       return null;
     }
   };

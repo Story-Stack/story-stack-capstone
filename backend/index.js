@@ -57,7 +57,6 @@ async function checkAndNotifyNewReleases() {
       const mockReq = {};
       const mockRes = {
         json: (data) => {
-          console.log("New releases notification result:", data);
           return mockRes;
         },
         status: (code) => {
@@ -74,7 +73,6 @@ async function checkAndNotifyNewReleases() {
         method: "POST",
       });
 
-      console.log("New releases check completed");
     } catch (error) {
       console.error("Error in new releases check:", error);
     }

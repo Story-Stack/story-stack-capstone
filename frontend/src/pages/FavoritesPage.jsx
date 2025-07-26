@@ -40,7 +40,6 @@ function FavoritesPage() {
         setShelfItems(new Set());
       }
     } catch (error) {
-      console.error("Error loading shelf items:", error);
       setShelfItems(new Set());
     }
   };
@@ -55,7 +54,6 @@ function FavoritesPage() {
       const userResponse = await fetch(`/api/users/supabase/${user.id}`);
 
       if (!userResponse.ok) {
-        console.error("Failed to get user data:", userResponse.status);
         setFavorites([]);
         setLoading(false);
         return;
@@ -74,7 +72,6 @@ function FavoritesPage() {
         setFavorites([]);
       }
     } catch (error) {
-      console.error("Error loading favorites:", error);
       setFavorites([]);
     } finally {
       setLoading(false);
@@ -122,7 +119,6 @@ function FavoritesPage() {
         setJoinedChannels(new Set());
       }
     } catch (error) {
-      console.error("Error loading joined channels:", error);
       setJoinedChannels(new Set());
     }
   };
@@ -252,7 +248,6 @@ function FavoritesPage() {
             newShelfItems.add(book.id);
             return newShelfItems;
           });
-          console.log("Added to shelf:", book.volumeInfo?.title);
         } else {
           alert("Failed to add to shelf. Please try again.");
         }

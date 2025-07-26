@@ -137,7 +137,6 @@ router.get("/book/:bookId", async (req, res) => {
 
     res.json(rootComments);
   } catch (error) {
-    console.error("Error fetching comments:", error);
     res.status(500).json({ error: "Failed to fetch comments" });
   }
 });
@@ -217,7 +216,6 @@ router.post("/", async (req, res) => {
       },
     });
 
-    console.log("Comment created successfully:", comment.id);
 
 
     // If comment contains bad words, we should NOT create a notification
@@ -234,8 +232,7 @@ router.post("/", async (req, res) => {
     ) {
       try {
         console.log("Creating notification for reply to comment");
-        console.log("Parent comment user ID:", parentCommentUser.id);
-        console.log("Current user ID:", userId);
+
 
         // Get or create a general channel for book discussions
         let channel = await prisma.channel.findFirst({
@@ -245,7 +242,6 @@ router.post("/", async (req, res) => {
         });
 
         if (!channel) {
-          console.log("No channel found for book, creating one");
           // Create a new channel for this book
           channel = await prisma.channel.create({
             data: {
@@ -255,7 +251,6 @@ router.post("/", async (req, res) => {
               book_data: book_data,
             },
           });
-          console.log("Created new channel:", channel.id);
         } else {
           console.log("Using existing channel:", channel.id);
         }
@@ -279,8 +274,7 @@ router.post("/", async (req, res) => {
           },
         });
 
-        console.log("Created notification for comment reply:", notification.id);
-        console.log("Notification created successfully");
+  
       } catch (notificationError) {
         console.error(
           "Error creating notification for comment reply:",

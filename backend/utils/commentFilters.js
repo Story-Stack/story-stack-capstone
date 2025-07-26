@@ -62,7 +62,6 @@ try {
   // Insert all bad words into the Trie
   badWordsList.forEach(word => badWordsTrie.insert(word));
 
-  console.log('Bad words Trie initialized successfully with', badWordsList.length, 'words');
 } catch (error) {
   console.error('Error initializing bad words Trie:', error);
 }

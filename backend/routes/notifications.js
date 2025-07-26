@@ -9,7 +9,6 @@ const prisma = new PrismaClient();
 router.get("/user/:userId", async (req, res) => {
   try {
     const { userId } = req.params;
-    console.log("Getting notifications for user with supabase_id:", userId);
 
     // Find the user by supabase_id (since frontend sends supabase user ID)
     const user = await prisma.user.findUnique({
@@ -24,7 +23,6 @@ router.get("/user/:userId", async (req, res) => {
       return res.json([]);
     }
 
-    console.log("Found user with ID:", user.id, "Email:", user.email);
 
     // Get all notifications for the user, not just unread ones
     const notifications = await prisma.notification.findMany({
@@ -65,11 +63,9 @@ router.get("/user/:userId", async (req, res) => {
           isRecommendation: false
         };
 
-        console.log("Formatted notification:", formatted);
         return formatted;
       } catch (error) {
         console.error("Error formatting notification:", error);
-        // Return a minimal notification to prevent the entire request from failing
         return {
           id: notification.id,
           content: notification.content || "New notification",
@@ -80,7 +76,6 @@ router.get("/user/:userId", async (req, res) => {
       }
     });
 
-    console.log("Returning formatted notifications:", formattedNotifications.length);
 
     res.json(formattedNotifications);
   } catch (error) {
@@ -153,7 +148,7 @@ router.post("/recommendation", async (req, res) => {
       },
     });
 
-   
+
 
     res.status(201).json({
       id: notification.id,

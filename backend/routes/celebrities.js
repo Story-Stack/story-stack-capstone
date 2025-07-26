@@ -26,7 +26,6 @@ router.get("/", async (req, res) => {
 
     res.json(celebrities);
   } catch (error) {
-    console.error("Error fetching celebrities:", error);
     res.status(500).json({ error: "Failed to fetch celebrities" });
   }
 });
@@ -70,7 +69,6 @@ router.get("/:userId", async (req, res) => {
       calculatedWeight,
     });
   } catch (error) {
-    console.error("Error checking celebrity status:", error);
     res.status(500).json({ error: "Failed to check celebrity status" });
   }
 });
@@ -115,7 +113,6 @@ router.post("/:userId/update-weight", async (req, res) => {
       celebrityWeight: updatedUser.celebrity_weight,
     });
   } catch (error) {
-    console.error("Error updating celebrity weight:", error);
     res.status(500).json({ error: "Failed to update celebrity weight" });
   }
 });
@@ -151,7 +148,6 @@ router.post("/update-all-weights", async (_, res) => {
       updatedCount: users.length,
     });
   } catch (error) {
-    console.error("Error updating all celebrity weights:", error);
     res.status(500).json({ error: "Failed to update celebrity weights" });
   }
 });

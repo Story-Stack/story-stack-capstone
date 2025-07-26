@@ -20,12 +20,10 @@ function NotificationBell() {
     if (!user) return;
 
     try {
-      console.log("Fetching notifications for user:", user.id);
       const response = await fetch(`/api/notifications/user/${user.id}`);
 
       if (response.ok) {
         const data = await response.json();
-        console.log("Raw notifications data:", data);
 
         // Store the previous notification count before updating
         const prevCount = notifications.length;
@@ -41,7 +39,6 @@ function NotificationBell() {
               : notification.isRecommendation,
         }));
 
-        console.log("Fixed notifications data:", fixedData);
 
         // Count unread notifications
         const newUnreadCount = fixedData.filter((n) => !n.isRead).length;
@@ -121,7 +118,6 @@ function NotificationBell() {
   // Function to manually trigger a notification refresh
   const triggerNotificationRefresh = useCallback(() => {
     if (user) {
-      console.log("Manually triggering notification refresh");
       fetchNotifications();
     }
   }, [user, fetchNotifications]);
@@ -175,7 +171,6 @@ function NotificationBell() {
       );
       setUnreadCount((prev) => Math.max(0, prev - 1));
 
-      console.log("Handling notification click:", notification);
 
       // If it's a comment notification (has comment_id)
       if (notification.comment_id) {
@@ -188,13 +183,10 @@ function NotificationBell() {
         );
       } else if (notification.isRecommendation) {
         // For recommendation notifications, navigate to the book details
-        console.log(`Navigating to book details: /book/${notification.bookId}`);
         navigate(`/book/${notification.bookId}`);
       } else {
         // Navigate to the discussion page for this book/channel
-        console.log(
-          `Navigating to discussion page: /discussion/${notification.bookId}`
-        );
+
         navigate(`/discussion/${notification.bookId}`);
       }
 

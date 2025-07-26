@@ -114,7 +114,6 @@ async function isUserCelebrity(
     // A user is a celebrity if they have enough followers AND have engaging comments
     return hasEngagingComments;
   } catch (error) {
-    console.error("Error checking celebrity status:", error);
     return false;
   }
 }
@@ -190,7 +189,6 @@ async function getAllCelebrities(
 
     return celebrities;
   } catch (error) {
-    console.error("Error fetching celebrities:", error);
     return [];
   }
 }

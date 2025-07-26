@@ -17,7 +17,6 @@ function CelebrityList() {
         setCelebrities(celebs);
         setLoading(false);
       } catch (err) {
-        console.error("Error fetching celebrities:", err);
         setError("Failed to load celebrities");
         setLoading(false);
       }

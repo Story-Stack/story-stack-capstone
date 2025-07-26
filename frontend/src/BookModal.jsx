@@ -80,7 +80,6 @@ function BookModal({
           });
         }
       } catch (error) {
-        console.error("Error fetching user data:", error);
         setUser({
           id: user.id,
           supabase_id: user.id,
@@ -132,7 +131,6 @@ function BookModal({
             throw new Error("Failed to get user data");
           }
         } catch (error) {
-          console.error("Error getting user data for comment:", error);
           throw error;
         }
       }
@@ -150,7 +148,6 @@ function BookModal({
         commentData.parentId = replyingTo.id;
       }
 
-      console.log("Sending comment with data:", commentData);
 
       const response = await fetch("/api/comments", {
         method: "POST",
@@ -162,7 +159,6 @@ function BookModal({
 
       if (response.ok) {
         const newReply = await response.json();
-        console.log("New reply created:", newReply);
 
         // After creating a reply, fetch all comments again to get the updated structure
         await fetchComments();

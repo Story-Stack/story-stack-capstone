@@ -27,11 +27,9 @@ function NotificationsPage() {
         const data = await response.json();
         setNotifications(data);
       } else {
-        console.error("Failed to fetch notifications");
         setNotifications([]);
       }
     } catch (error) {
-      console.error("Error fetching notifications:", error);
       setNotifications([]);
     } finally {
       setLoading(false);

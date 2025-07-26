@@ -30,7 +30,6 @@ router.get("/:userId", async (req, res) => {
 
     res.json(favorites);
   } catch (error) {
-    console.error("Error fetching favorites:", error);
     res.status(500).json({ error: "Failed to fetch favorites" });
   }
 });
@@ -84,14 +83,12 @@ router.post("/", async (req, res) => {
           needs_recalculation: true,
         },
       });
-      console.log(`Marked user ${user.id} scores for recalculation`);
     } catch (scoreError) {
       console.warn("Error marking scores for recalculation:", scoreError);
     }
 
     res.status(201).json(favorite);
   } catch (error) {
-    console.error("Error adding to favorites:", error);
     res.status(500).json({ error: "Failed to add to favorites" });
   }
 });
@@ -135,14 +132,12 @@ router.delete("/", async (req, res) => {
           needs_recalculation: true,
         },
       });
-      console.log(`Marked user ${user.id} scores for recalculation`);
     } catch (scoreError) {
       console.warn("Error marking scores for recalculation:", scoreError);
     }
 
     res.json({ message: "Book removed from favorites" });
   } catch (error) {
-    console.error("Error removing from favorites:", error);
     res.status(500).json({ error: "Failed to remove from favorites" });
   }
 });

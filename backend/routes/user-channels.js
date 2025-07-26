@@ -43,7 +43,6 @@ router.get('/user/:userId', async (req, res) => {
 
     res.json(formattedChannels);
   } catch (error) {
-    console.error('Error fetching user channels:', error);
     res.status(500).json({ error: 'Failed to fetch user channels' });
   }
 });
@@ -120,7 +119,6 @@ router.post('/join', async (req, res) => {
 
     res.json(formattedChannel);
   } catch (error) {
-    console.error('Error joining channel:', error);
     res.status(500).json({ error: 'Failed to join channel' });
   }
 });
@@ -166,7 +164,6 @@ router.delete('/leave', async (req, res) => {
 
     res.json({ message: 'Successfully left channel' });
   } catch (error) {
-    console.error('Error leaving channel:', error);
     res.status(500).json({ error: 'Failed to leave channel' });
   }
 });
@@ -210,7 +207,6 @@ router.get('/check/:userId/:bookId', async (req, res) => {
 
     res.json({ isJoined: !!membership });
   } catch (error) {
-    console.error('Error checking channel membership:', error);
     res.status(500).json({ error: 'Failed to check channel membership' });
   }
 });
