@@ -47,7 +47,6 @@ router.get("/channel/:channelId", async (req, res) => {
 
     res.json(formattedMessages);
   } catch (error) {
-    console.error("Error fetching messages:", error);
     res.status(500).json({ error: "Failed to fetch messages" });
   }
 });
@@ -57,7 +56,6 @@ router.post("/", async (req, res) => {
   try {
     const { content, channelId, userId } = req.body;
 
-    console.log("Message creation request:", { content, channelId, userId });
 
     // Find the user by supabase_id (since frontend sends supabase user ID)
     // Make sure userId is treated as a string
@@ -68,11 +66,9 @@ router.post("/", async (req, res) => {
     });
 
     if (!user) {
-      console.error("User not found with supabase_id:", userId);
       return res.status(404).json({ error: "User not found" });
     }
 
-    console.log("Found user:", { id: user.id, email: user.email });
 
     // Verify channelId exists
     const channelExists = await prisma.channel.findUnique({
@@ -82,15 +78,10 @@ router.post("/", async (req, res) => {
     });
 
     if (!channelExists) {
-      console.error("Channel not found with ID:", channelId);
       return res.status(404).json({ error: "Channel not found" });
     }
 
-    console.log("Creating message with data:", {
-      content: content,
-      channelId: channelId,
-      userId: user.id,
-    });
+
 
     // Create the message
     const message = await prisma.message.create({
@@ -112,7 +103,6 @@ router.post("/", async (req, res) => {
       },
     });
 
-    console.log("Message created successfully:", message);
 
     // Check if the channel has high activity before sending notifications
     try {
@@ -133,8 +123,7 @@ router.post("/", async (req, res) => {
         );
       }
     } catch (notificationError) {
-      // Log the error but don't fail the message creation
-      console.error("Error in notification processing:", notificationError);
+     
       console.error("Notification error details:", {
         name: notificationError.name,
         message: notificationError.message,
@@ -154,7 +143,6 @@ router.post("/", async (req, res) => {
 
     res.status(201).json(formattedMessage);
   } catch (error) {
-    console.error("Error creating message:", error);
     console.error("Error details:", {
       name: error.name,
       message: error.message,

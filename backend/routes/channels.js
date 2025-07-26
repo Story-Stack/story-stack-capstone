@@ -15,14 +15,13 @@ router.get('/book/:bookId', async (req, res) => {
       }
     });
 
-    
+
     if (!channel) {
       return res.status(404).json({ error: 'Channel not found' });
     }
 
     res.json(channel);
   } catch (error) {
-    console.error('Error fetching channel:', error);
     res.status(500).json({ error: 'Failed to fetch channel' });
   }
 });

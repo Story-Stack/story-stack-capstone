@@ -20,7 +20,6 @@ router.get("/supabase/:supabaseId", async (req, res) => {
 
     res.json(user);
   } catch (error) {
-    console.error("Error fetching user:", error);
     res.status(500).json({ error: "Internal server error" });
   }
 });
@@ -52,7 +51,6 @@ router.get("/:id", async (req, res) => {
 
     res.json(user);
   } catch (error) {
-    console.error("Error fetching user:", error);
     res.status(500).json({ error: "Internal server error" });
   }
 });
@@ -86,7 +84,6 @@ router.post("/", async (req, res) => {
 
     res.status(201).json(newUser);
   } catch (error) {
-    console.error("Error creating user:", error);
     res.status(500).json({ error: "Internal server error" });
   }
 });

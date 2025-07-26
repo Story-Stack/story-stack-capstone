@@ -36,7 +36,6 @@ function Sidebar() {
       const userResponse = await fetch(`/api/users/supabase/${user.id}`);
 
       if (!userResponse.ok) {
-        console.error("Failed to get user data:", userResponse.status);
         setFavoritesCount(0);
         return;
       }
@@ -54,7 +53,6 @@ function Sidebar() {
         setFavoritesCount(0);
       }
     } catch (error) {
-      console.error("Error loading favorites count:", error);
       setFavoritesCount(0);
     }
   };
@@ -72,7 +70,6 @@ function Sidebar() {
         setShelfCount(0);
       }
     } catch (error) {
-      console.error("Error loading shelf count:", error);
       setShelfCount(0);
     }
   };
@@ -106,7 +103,6 @@ function Sidebar() {
         setNotificationsCount(0);
       }
     } catch (error) {
-      console.error("Error fetching notifications count:", error);
       setNotificationsCount(0);
     }
   };

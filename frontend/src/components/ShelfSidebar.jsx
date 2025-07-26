@@ -39,7 +39,6 @@ function Sidebar() {
         setShelfBooksCount(0);
       }
     } catch (error) {
-      console.error("Error loading shelf count:", error);
       setShelfBooksCount(0);
     }
   };
@@ -59,7 +58,6 @@ function Sidebar() {
         setNotificationsCount(0);
       }
     } catch (error) {
-      console.error("Error fetching notifications count:", error);
       setNotificationsCount(0);
     }
   };

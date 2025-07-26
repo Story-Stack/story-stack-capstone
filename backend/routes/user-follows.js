@@ -33,7 +33,6 @@ router.get("/followers/:userId", async (req, res) => {
 
     res.json(formattedFollowers);
   } catch (error) {
-    console.error("Error fetching followers:", error);
     res.status(500).json({ error: "Internal server error" });
   }
 });
@@ -67,7 +66,6 @@ router.get("/following/:userId", async (req, res) => {
 
     res.json(formattedFollowing);
   } catch (error) {
-    console.error("Error fetching following:", error);
     res.status(500).json({ error: "Internal server error" });
   }
 });
@@ -127,7 +125,6 @@ router.post("/follow", async (req, res) => {
 
     res.status(201).json({ message: "Successfully followed user" });
   } catch (error) {
-    console.error("Error following user:", error);
     res.status(500).json({ error: "Internal server error" });
   }
 });
@@ -174,7 +171,6 @@ router.delete("/unfollow", async (req, res) => {
 
     res.json({ message: "Successfully unfollowed user" });
   } catch (error) {
-    console.error("Error unfollowing user:", error);
     res.status(500).json({ error: "Internal server error" });
   }
 });
@@ -193,7 +189,6 @@ router.get("/is-following/:followerId/:followingId", async (req, res) => {
 
     res.json({ isFollowing: !!existingFollow });
   } catch (error) {
-    console.error("Error checking follow status:", error);
     res.status(500).json({ error: "Internal server error" });
   }
 });
@@ -220,7 +215,6 @@ router.get("/counts/:userId", async (req, res) => {
       following: user.num_following,
     });
   } catch (error) {
-    console.error("Error fetching follow counts:", error);
     res.status(500).json({ error: "Internal server error" });
   }
 });

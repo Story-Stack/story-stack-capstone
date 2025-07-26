@@ -31,14 +31,11 @@ async function checkChannelActivity(channelId) {
     // count distinct users
     const distinctUserCount = recentMessages.length;
 
-    console.log(
-      `Channel ${channelId} activity check: ${distinctUserCount}/${HIGH_ACTIVITY.DISTINCT_USERS_THRESHOLD} distinct users in the last ${HIGH_ACTIVITY.TIME_WINDOW_MINUTES} minutes`
-    );
+
 
     // return true if the number of distinct users meets or exceeds the threshold
     return distinctUserCount >= HIGH_ACTIVITY.DISTINCT_USERS_THRESHOLD;
   } catch (error) {
-    console.error("Error checking channel activity:", error);
     // default to false if there's an error
     return false;
   }
