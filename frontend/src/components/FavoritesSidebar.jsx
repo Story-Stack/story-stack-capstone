@@ -141,7 +141,6 @@ function Sidebar() {
 
   const handleProfileClick = () => {
     if (!user) {
-      alert("Please sign in to view your profile");
       return;
     }
     navigate("/profile");

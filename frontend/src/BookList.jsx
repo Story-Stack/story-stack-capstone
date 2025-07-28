@@ -40,7 +40,6 @@ function BookList({
         const favoriteIds = new Set(favoritesData.map((fav) => fav.book_id));
         setFavorites(favoriteIds);
       } else {
-        alert("Failed to load favorites");
         setFavorites(new Set());
       }
 
@@ -54,11 +53,9 @@ function BookList({
         const shelfIds = new Set(shelfData.map((item) => item.book_id));
         setShelfItems(shelfIds);
       } else {
-        alert("Failed to load shelf");
         setShelfItems(new Set());
       }
     } catch (error) {
-      alert("Error loading user data");
       setFavorites(new Set());
       setShelfItems(new Set());
     }
