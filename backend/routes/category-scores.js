@@ -136,7 +136,7 @@ router.get("/:userId", async (req, res) => {
 
     res.json(topCategories);
   } catch (error) {
-    res.status(500).json({ error: "Failed to fetch top categorieƒs" });
+    res.status(500).json({ error: "Failed to fetch top categories" });
   }
 });
 
