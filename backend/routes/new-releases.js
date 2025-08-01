@@ -103,16 +103,22 @@ router.get("/", async (_req, res) => {
 // Notify users about new releases - completely rewritten for reliability
 router.post("/notify", async (_req, res) => {
   try {
+    console.log("Starting new releases notification process...");
+
     // Get all users
     const users = await prisma.user.findMany();
 
     if (!users.length) {
+      console.log("No users found to notify");
       return res.json({ message: "No users to notify" });
     }
+
+    console.log(`Found ${users.length} users to potentially notify`);
 
     // Get new releases using a reliable approach
     const apiKey = process.env.GOOGLE_BOOKS_API_KEY;
     if (!apiKey) {
+      console.log("Google Books API key not configured");
       return res
         .status(500)
         .json({ error: "Google Books API key not configured" });
@@ -160,6 +166,7 @@ router.post("/notify", async (_req, res) => {
     }
 
     // Process the books found
+    const today = new Date(); // Add the missing today variable
 
     // Filter to books with good data AND recent publication date
     const validBooks = allBooks.filter((book) => {
@@ -295,7 +302,7 @@ router.post("/notify", async (_req, res) => {
             channel_id: channel.id,
             book_id: bookToNotify.id,
             content: `NEW RELEASE: "${bookToNotify.volumeInfo.title}" by ${bookToNotify.volumeInfo.authors[0]} (Published: ${publishedDate})`,
-            is_recommendation: true,
+            is_recommendation: true, // Mark as recommendation
             book_data: bookToNotify,
           },
         });

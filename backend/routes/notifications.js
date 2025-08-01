@@ -23,7 +23,6 @@ router.get("/user/:userId", async (req, res) => {
       return res.json([]);
     }
 
-
     // Get all notifications for the user, not just unread ones
     const notifications = await prisma.notification.findMany({
       where: {
@@ -39,28 +38,24 @@ router.get("/user/:userId", async (req, res) => {
       },
     });
 
-
-
-
-
-
     const formattedNotifications = notifications.map((notification) => {
       try {
-
         const formatted = {
           id: notification.id,
           content: notification.content,
           channelId: notification.channel_id,
           messageId: notification.message_id,
-          bookId: notification.channel ? notification.channel.book_id : null,
+          bookId:
+            notification.book_id ||
+            (notification.channel ? notification.channel.book_id : null),
           bookTitle: notification.channel
             ? notification.channel.book_title
             : "Unknown Book",
           createdAt: notification.created_at,
           isRead: notification.is_read,
-          // Add default fields
-          comment_id: null,
-          isRecommendation: false
+          comment_id: notification.comment_id || null,
+          isRecommendation: notification.is_recommendation || false,
+          book_data: notification.book_data || null,
         };
 
         return formatted;
@@ -75,7 +70,6 @@ router.get("/user/:userId", async (req, res) => {
         };
       }
     });
-
 
     res.json(formattedNotifications);
   } catch (error) {
@@ -147,8 +141,6 @@ router.post("/recommendation", async (req, res) => {
         book_data: bookData,
       },
     });
-
-
 
     res.status(201).json({
       id: notification.id,

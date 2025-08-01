@@ -171,20 +171,24 @@ async function checkAndSendRecommendations() {
 // Start server
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+
   // Schedule periodic checks
   const RECOMMENDATION_CHECK_INTERVAL = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
   const NEW_RELEASES_CHECK_INTERVAL = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
 
-  // Initial checks after 1 minute
+
+  // Run an initial check for new releases
+  checkAndNotifyNewReleases();
+  console.log(`New releases check scheduled every ${NEW_RELEASES_CHECK_INTERVAL/1000/60/60} hours`);
+
+  // Set up recurring new releases checks (daily)
+  setInterval(checkAndNotifyNewReleases, NEW_RELEASES_CHECK_INTERVAL);
+
+  // Check for recommendations (less urgent, after a short delay)
   setTimeout(() => {
-    // Check for recommendations
     checkAndSendRecommendations();
     // Set up recurring recommendation checks
     setInterval(checkAndSendRecommendations, RECOMMENDATION_CHECK_INTERVAL);
-
-    // Check for new releases
-    checkAndNotifyNewReleases();
-    // Set up recurring new releases checks
-    setInterval(checkAndNotifyNewReleases, NEW_RELEASES_CHECK_INTERVAL);
-  }, 60000); // 1 minute delay for initial checks
+  }, 30000); // 30 second delay for recommendations
 });

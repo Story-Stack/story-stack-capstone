@@ -1,6 +1,10 @@
 const express = require("express");
 const { PrismaClient } = require("../generated/prisma");
-const { shouldCreateNotification, containsBadWords, countWords } = require("../utils/commentFilters");
+const {
+  shouldCreateNotification,
+  containsBadWords,
+  countWords,
+} = require("../utils/commentFilters");
 
 const router = express.Router();
 const prisma = new PrismaClient();
@@ -216,8 +220,6 @@ router.post("/", async (req, res) => {
       },
     });
 
-
-
     // If comment contains bad words, we should NOT create a notification
     if (containsBadWords(content)) {
       console.log("NOTIFICATION BLOCKED - Comment contains bad words");
@@ -232,7 +234,6 @@ router.post("/", async (req, res) => {
     ) {
       try {
         console.log("Creating notification for reply to comment");
-
 
         // Get or create a general channel for book discussions
         let channel = await prisma.channel.findFirst({
@@ -264,17 +265,17 @@ router.post("/", async (req, res) => {
         )}${content.length > 50 ? "..." : ""}"`;
 
         // Create notification for the parent comment author
-        // Only include fields that exist in the database schema
+        // Include all necessary fields including comment_id
         const notification = await prisma.notification.create({
           data: {
             user_id: parentCommentUser.id,
             channel_id: channel.id,
             content: notificationContent,
             is_read: false,
+            comment_id: comment.id, // Add the comment ID
+            book_id: book_id, // Add the book ID
           },
         });
-
-  
       } catch (notificationError) {
         console.error(
           "Error creating notification for comment reply:",

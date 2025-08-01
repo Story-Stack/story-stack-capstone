@@ -20,10 +20,12 @@ function NotificationBell() {
     if (!user) return;
 
     try {
+      console.log("Fetching notifications for user:", user.id);
       const response = await fetch(`/api/notifications/user/${user.id}`);
 
       if (response.ok) {
         const data = await response.json();
+        console.log("Notifications received:", data.length);
 
         // Store the previous notification count before updating
         const prevCount = notifications.length;
@@ -39,9 +41,9 @@ function NotificationBell() {
               : notification.isRecommendation,
         }));
 
-
         // Count unread notifications
         const newUnreadCount = fixedData.filter((n) => !n.isRead).length;
+        console.log("Unread notifications:", newUnreadCount);
 
         // Update state
         setNotifications(fixedData);
@@ -130,8 +132,8 @@ function NotificationBell() {
 
       fetchNotifications();
 
-      // Set up polling to check for new notifications every 10 seconds (more frequent)
-      const interval = setInterval(fetchNotifications, 10000);
+      // Set up polling to check for new notifications every 30 seconds
+      const interval = setInterval(fetchNotifications, 30000);
 
       // Add event listener for manual refresh
       window.addEventListener("refreshNotifications", fetchNotifications);
@@ -170,7 +172,6 @@ function NotificationBell() {
         )
       );
       setUnreadCount((prev) => Math.max(0, prev - 1));
-
 
       // If it's a comment notification (has comment_id)
       if (notification.comment_id) {
@@ -250,16 +251,20 @@ function NotificationBell() {
                   } ${notification.isRecommendation ? "recommendation" : ""}`}
                   onClick={() => handleNotificationClick(notification)}
                 >
-                  {/* Check if this is a recommendation or new release notification based on content */}
-                  {(notification.isRecommendation ||
-                    (notification.content &&
-                      (notification.content.includes("enjoy reading") ||
-                        notification.content.includes("NEW RELEASE")))) && (
+                  {/* Display badge based on notification type */}
+                  {notification.content && notification.content.includes("NEW RELEASE") && (
                     <div className="recommendation-badge">
-                      {notification.content &&
-                      notification.content.includes("NEW RELEASE")
-                        ? "🆕 New Release"
-                        : "📚 Recommendation"}
+                      🆕 New Release
+                    </div>
+                  )}
+                  {notification.isRecommendation && !notification.content.includes("NEW RELEASE") && (
+                    <div className="recommendation-badge">
+                      📚 Recommendation
+                    </div>
+                  )}
+                  {notification.comment_id && (
+                    <div className="comment-badge">
+                      💬 Comment
                     </div>
                   )}
                   <p>{notification.content}</p>
