@@ -26,12 +26,18 @@ function OtherUserProfilePage() {
 
   useEffect(() => {
     fetchUserData();
-    fetchJoinedChannels();
 
     if (user) {
       fetchCurrentUserData();
     }
   }, [userId, user]);
+
+  // Fetch joined channels when userData is available
+  useEffect(() => {
+    if (userData) {
+      fetchJoinedChannels();
+    }
+  }, [userData]);
 
   useEffect(() => {
     if (userData) {
@@ -51,10 +57,7 @@ function OtherUserProfilePage() {
     }
   };
 
-  // Helper function to navigate to user profile
-  const navigateToUserProfile = (userId) => {
-    navigate(`/user/${userId}`);
-  };
+  // No longer needed as we're using navigate directly
 
   const fetchUserData = async () => {
     try {
@@ -74,7 +77,12 @@ function OtherUserProfilePage() {
 
   const fetchJoinedChannels = async () => {
     try {
-      const response = await fetch(`/api/user-channels/user/${userId}`);
+      // First get the user's supabase_id since the API expects that
+      if (!userData) return;
+
+      const response = await fetch(
+        `/api/user-channels/user/${userData.supabase_id}`
+      );
       if (response.ok) {
         const data = await response.json();
         setJoinedChannels(data);
@@ -154,7 +162,7 @@ function OtherUserProfilePage() {
     setShowFollowers(false);
   };
 
-  const handleFollowStatusChange = (isFollowing) => {
+  const handleFollowStatusChange = () => {
     // Refresh follow counts when follow status changes
     fetchFollowCounts();
   };

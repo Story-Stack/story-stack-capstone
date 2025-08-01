@@ -18,10 +18,12 @@ router.get("/", async (req, res) => {
     // Get query parameters with defaults
     const followerThreshold = parseInt(req.query.followers) || 5;
     const commentTreeThreshold = parseInt(req.query.comments) || 10;
+    const requireComments = req.query.requireComments === "true";
 
     const celebrities = await getAllCelebrities(
       followerThreshold,
-      commentTreeThreshold
+      commentTreeThreshold,
+      requireComments
     );
 
     res.json(celebrities);

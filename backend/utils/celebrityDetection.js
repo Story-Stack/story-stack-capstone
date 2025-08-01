@@ -148,11 +148,13 @@ function calculateCelebrityWeight(followerCount) {
  * Get all celebrity users in the system
  * @param {number} followerThreshold - Minimum followers required (default: global FOLLOWER_THRESHOLD)
  * @param {number} commentTreeThreshold - Minimum size for a "large" comment tree
+ * @param {boolean} requireComments - Whether to require engaging comments (default: false)
  * @returns {Promise<Array>} - Array of celebrity user objects
  */
 async function getAllCelebrities(
   followerThreshold = FOLLOWER_THRESHOLD,
-  commentTreeThreshold = 10
+  commentTreeThreshold = 10,
+  requireComments = false
 ) {
   try {
     // Get all users with at least the minimum follower count
@@ -173,7 +175,12 @@ async function getAllCelebrities(
       },
     });
 
-    // Filter to only those with engaging comments
+    // If we don't require comments, return all users with sufficient followers
+    if (!requireComments) {
+      return usersWithFollowers;
+    }
+
+    // Otherwise, filter to only those with engaging comments
     const celebrities = [];
 
     for (const user of usersWithFollowers) {

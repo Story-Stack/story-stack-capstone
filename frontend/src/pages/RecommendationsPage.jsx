@@ -57,9 +57,7 @@ function RecommendationsPage() {
     if (!user) return;
 
     try {
-      const response = await fetch(
-        `/api/recommendations/${user.id}${notifyParam}`
-      );
+      const response = await fetch(`/api/favorites/${user.id}`);
 
       if (response.ok) {
         const favoritesData = await response.json();
@@ -339,23 +337,86 @@ function RecommendationsPage() {
     const allBooks = [];
 
     try {
-      // Fetch books for each top category
-      for (const categoryData of topCategories.slice(0, 2)) {
-        // Use top 2 categories
+      // Ensure we have at least one category
+      if (!topCategories || topCategories.length === 0) {
+        console.error("No categories available for recommendations");
+        return [];
+      }
+
+      // Use all available categories (up to 3)
+      const categoriesToUse = topCategories.slice(0, 3);
+
+      // Fetch books for each category
+      for (const categoryData of categoriesToUse) {
         const category = categoryData.category;
-        const searchQuery = `subject:${category}`;
 
-        const response = await fetch(
-          `https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(
-            searchQuery
-          )}&maxResults=10&orderBy=relevance`
-        );
+        // Skip empty categories
+        if (!category || category.trim() === "") {
+          continue;
+        }
 
-        if (response.ok) {
-          const data = await response.json();
-          if (data.items) {
-            allBooks.push(...data.items);
+        // Add some variety to the search query
+        const searchQueries = [
+          `subject:${category}`,
+          `subject:${category}+fiction`,
+          `subject:${category}+bestseller`,
+        ];
+
+        // Use a different query for each category to increase variety
+        const queryIndex =
+          categoriesToUse.indexOf(categoryData) % searchQueries.length;
+        const searchQuery = searchQueries[queryIndex];
+
+        try {
+          const response = await fetch(
+            `https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(
+              searchQuery
+            )}&maxResults=15&orderBy=relevance`
+          );
+
+          if (response.ok) {
+            const data = await response.json();
+            if (data.items && data.items.length > 0) {
+              // Filter out books without essential information
+              const validBooks = data.items.filter(
+                (book) =>
+                  book.volumeInfo &&
+                  book.volumeInfo.title &&
+                  book.volumeInfo.authors &&
+                  book.volumeInfo.imageLinks
+              );
+
+              allBooks.push(...validBooks);
+            } else {
+              console.log(`No books found for category: ${category}`);
+            }
+          } else {
+            console.error(`Failed to fetch books for category: ${category}`);
           }
+        } catch (categoryError) {
+          console.error(
+            `Error fetching books for category ${category}:`,
+            categoryError
+          );
+          // Continue with other categories even if one fails
+        }
+      }
+
+      // If we still don't have enough books, try a general search
+      if (allBooks.length < 5) {
+        try {
+          const response = await fetch(
+            `https://www.googleapis.com/books/v1/volumes?q=bestsellers&maxResults=20`
+          );
+
+          if (response.ok) {
+            const data = await response.json();
+            if (data.items) {
+              allBooks.push(...data.items);
+            }
+          }
+        } catch (fallbackError) {
+          console.error("Error fetching fallback books:", fallbackError);
         }
       }
 

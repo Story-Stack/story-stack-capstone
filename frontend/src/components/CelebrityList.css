@@ -22,6 +22,7 @@
 }
 
 .celebrity-item {
+  display: flex;
   padding: 10px;
   border-radius: 4px;
   margin-bottom: 8px;
@@ -29,6 +30,7 @@
   border: 1px solid #e1e4e8;
   cursor: pointer;
   transition: all 0.2s ease;
+  overflow: hidden;
 }
 
 .celebrity-item:hover {
@@ -39,13 +41,20 @@
 
 .celebrity-info {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
+  flex-direction: column;
+  width: 100%;
+  overflow: hidden;
 }
 
 .celebrity-name {
-  font-weight: 500;
-  color: #333;
+  font-weight: 600;
+  color: #0066cc;
+  text-decoration: underline;
+  cursor: pointer;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-bottom: 3px;
+  font-size: 1rem;
 }
 
 .celebrity-followers {
@@ -54,6 +63,10 @@
   background-color: #e9ecef;
   padding: 2px 8px;
   border-radius: 12px;
+  white-space: nowrap;
+  margin-top: 5px;
+  display: inline-block;
+  align-self: flex-start;
 }
 
 .error-message {
